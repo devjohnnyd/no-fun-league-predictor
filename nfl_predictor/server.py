@@ -105,6 +105,8 @@ class SeasonFeeds:
         self.refresh = AnalysisRefresh(self, history_bundles, self.state_dir / "refreshes")
         from .automation import WeeklyAutomation
         self.automation = WeeklyAutomation(self, self.state_dir / "preparation.sqlite3")
+        from .market_collection import MarketCollection
+        self.market_collection = MarketCollection(self, self.state_dir / "market-collection.sqlite3")
 
     def feed(self, week):
         if not 1 <= week <= 18:
@@ -143,7 +145,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             return
         route = self.path.split("?", 1)[0]
         if route == "/api/refresh":
-            self.send_json({**self.feed.refresh.status, "automation": self.feed.automation.status()})
+            self.send_json({**self.feed.refresh.status, "automation": self.feed.automation.status(), "marketCollection": self.feed.market_collection.status()})
             return
         if route.endswith("/live-week.json") or route == "/live-week.json":
             try:

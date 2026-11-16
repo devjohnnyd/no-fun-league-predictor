@@ -42,6 +42,21 @@ function GameCard({ row, onDetails }) {
   </article>;
 }
 
+function BackgroundLines({ collection, week }) {
+  if (!collection) return null;
+  const current = collection.weeks?.find(item => item.week === week);
+  const time = value => new Date(value).toLocaleString("en-US", {timeZone:"America/New_York",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}) + " ET";
+  return <details className="nfl-automation"><summary>Background lines · {collection.enabled ? "On" : "Off"}{current?.state === "failed" ? " · Retry pending" : ""}</summary>
+    <p>{collection.cadence}</p>
+    {current ? <><p>Week {week}: {current.message || "Checking available quotes…"}</p>
+      {current.lastSuccessAt && <p>Last successful source check: {time(current.lastSuccessAt)}<br />Last pregame quote captured: {current.lastQuoteAt ? time(current.lastQuoteAt) : "None yet"}</p>}
+      {current.nextCheckAt && <p>Next check due: {time(current.nextCheckAt)}</p>}
+    </> : <p>This week is outside the current collection window or awaiting its first check. Upcoming games enter collection eight days before kickoff.</p>}
+    {collection.error && <p role="status">{collection.error}</p>}
+    <p>{collection.provider}. Quotes may be delayed or unavailable. Printed William Hill card totals remain separate. Line refreshes reuse saved pregame projections.</p>
+  </details>;
+}
+
 function InputStatus({ row, latest, now }) {
   const sources = latest?.sources || row.forecastSources || {};
   const historical = row.state === "post" || row.state === "in";
@@ -71,6 +86,7 @@ function Detail({ row, onClose, latest, now }) {
     <section className="nfl-detail-section"><h3>Kickoff on each team’s home clock</h3><dl><div><dt>{row.awayCode}</dt><dd>{clockText(row.awayClockKickoff)}{row.awayTimeZoneShift ? ` · ${Math.abs(row.awayTimeZoneShift)}h ${row.awayTimeZoneShift > 0 ? "east" : "west"}` : row.awayTimeZoneShift === 0 ? " · Same time zone" : ""}</dd></div><div><dt>{row.homeCode}</dt><dd>{clockText(row.homeClockKickoff)}{row.homeTimeZoneShift ? ` · ${Math.abs(row.homeTimeZoneShift)}h ${row.homeTimeZoneShift > 0 ? "east" : "west"}` : row.homeTimeZoneShift === 0 ? " · Same time zone" : ""}</dd></div></dl><p>Experimental travel context. Arrival times and actual acclimation are unknown.</p></section>
     {row.shadowComparisons?.length > 0 && <section className="nfl-detail-section" data-reviewed-rows><h3>Model comparison</h3><p>Estimated chance of a {row.homeCode} win. Research models are tracked separately from the saved primary pick.</p><dl>{row.shadowComparisons.filter(item => ["efficiency_qb", "body_clock", "combined"].includes(item.model)).map(item => <div key={item.model}><dt>{{efficiency_qb: "Efficiency + QB", body_clock: "With body clock", combined: "All new metrics"}[item.model]}</dt><dd>{Math.round(item.homeProbability * 100)}% · Experimental</dd></div>)}{row.eloHomeProbability != null && <div><dt>Independent Elo</dt><dd>{Math.round(row.eloHomeProbability * 100)}%</dd></div>}{row.marketHomeProbability != null && <div><dt>Market benchmark</dt><dd>{Math.round(row.marketHomeProbability * 100)}% · Margin removed</dd></div>}</dl></section>}
     <section className="nfl-detail-section"><h3>Market total and line history</h3><MarketTotal total={row.marketTotal} />{row.marketTotal?.forecastIssuedAt && <p>Projection issued {new Date(row.marketTotal.forecastIssuedAt).toLocaleString("en-US", {timeZone:"America/New_York"})} ET. Refreshing a line can change its lean without rebuilding these model inputs.</p>}{row.marketTotal?.history?.length > 0 && <div className="nfl-history-scroll" tabIndex={0} role="region" aria-label="Total line observations"><table><thead><tr><th>Observed (ET)</th><th>Provider</th><th>Line</th><th>Analysis then</th></tr></thead><tbody>{row.marketTotal.history.map(item => <tr key={`${item.book_id}:${item.observed_at}`}><td>{new Date(item.observed_at).toLocaleString("en-US", {timeZone:"America/New_York", month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</td><td>{item.book}</td><td>{item.line}</td><td>{item.analysis?.lean || "No forecast"}</td></tr>)}</tbody></table></div>}<p>First observed is the first quote captured by this tracker, rather than the market opening line. Quotes may be delayed; provider update time is unknown. Printed brochure totals remain fixed and separate.</p></section>
+    {row.marketTotal?.historyObservationCount > row.marketTotal?.history?.length && <p className="nfl-history-note">Showing {row.marketTotal.history.length} line/analysis changes and latest provider checks from {row.marketTotal.historyObservationCount} captured observations. Every timestamped observation remains saved on the server.</p>}
     <div className="nfl-detail-actions"><Button className="nfl-detail-close" onClick={onClose}>Back to games</Button></div>
   </div>;
 }
@@ -128,6 +144,7 @@ export function DashboardContent() {
     {job.message && <div className={`nfl-job-status is-${job.state}`} role="status">{job.week ? `Week ${job.week}: ` : ""}{job.message}</div>}
     {job.automation && <details className="nfl-automation"><summary>Automatic preparation · {job.automation.enabled ? "On" : "Off"}</summary><p>{job.automation.cadence}</p>{job.automation.nextCheckAt && <p>Next due: Week {job.automation.nextWeek} · {new Date(job.automation.nextCheckAt).toLocaleString("en-US", {timeZone:"America/New_York"})} ET</p>}<p>Incomplete statistics retry hourly, up to six full preparations per UTC day. Blocked pregame checks retry every ten minutes until their window closes.</p>{job.automation.error && <p role="status">{job.automation.error}</p>}{job.automation.recent?.[0]?.message && <p>Last scheduled attempt: Week {job.automation.recent[0].week} · {job.automation.recent[0].message}</p>}</details>}
     {snapshot.nflFeed?.error && <div className="nfl-feed-warning" role="status">Live updates are temporarily unavailable. Scores below retain their last successful update.</div>}
+    <BackgroundLines collection={job.marketCollection} week={snapshot.period?.week} />
     <nav className="nfl-mobile-nav" aria-label="Dashboard sections"><a href="#nfl-matchups">Games · {all.length}</a>{brochure.length > 0 && visible("weekly-totals") && <a href="#nfl-weekly-totals">Printed card · {brochure.length}</a>}</nav>
     <p className="nfl-tracking-scope" data-reviewed-rows>All {all.length} games · {all.length} market totals tracked · Includes Thursday<br />Market total model record: {marketRecord.picks ? `${marketRecord.wins}–${marketRecord.losses} from ${marketRecord.picks} saved picks` : "No saved picks yet"} · Experimental</p>
     {visible("week-overview") && <DataComponent id="week-overview" queryId="matchups" title="This week" kind="custom" variant="plain" sourceRows={filtered} displayRows={filtered} className="nfl-overview-evidence"><div className="nfl-overview" data-reviewed-rows><div><span>Matchups shown</span><strong>{summary.games}</strong></div><div><span>Live now</span><strong className={summary.live ? "nfl-live-count" : ""}>{summary.live}</strong></div><div><span>Still to come</span><strong>{summary.upcoming}</strong></div><div><span>Original picks record</span><strong>{summary.decided ? `${summary.wins}–${summary.losses}` : "—"}</strong><small>{summary.decided ? `${summary.decided} completed ${summary.decided === 1 ? "pick" : "picks"}` : "No completed picks in this view"}</small></div></div></DataComponent>}

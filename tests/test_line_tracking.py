@@ -36,6 +36,15 @@ class LineTrackingTests(unittest.TestCase):
         self.assertEqual(latest["originalLine"], 42.5)
         self.assertEqual(len(latest["history"]), 2)
 
+    def test_unchanged_background_checks_are_retained_but_do_not_bloat_visible_history(self):
+        self.observe()
+        self.observe("2026-11-16T13:05:00Z")
+        latest = self.observe("2026-11-16T13:10:00Z")
+        self.assertEqual(len(self.store.export_rows()),3)
+        self.assertEqual(latest["historyObservationCount"],3)
+        self.assertEqual([row["observed_at"] for row in latest["history"]],["2026-11-16T13:00:00Z","2026-11-16T13:10:00Z"])
+        self.assertEqual(latest["originalIssuedAt"],"2026-11-16T13:00:00Z")
+
     def test_final_result_uses_saved_line_and_does_not_capture_postgame_quotes(self):
         self.observe()
         self.game.update(state="post", completed=True)

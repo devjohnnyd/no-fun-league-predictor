@@ -33,7 +33,7 @@ export function useAnalysisRefresh(week) {
       const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ week }) });
       if (!response.ok) throw new Error("Scores and lines requested. Full model refresh requires the local analysis server.");
       const next = await response.json();
-      setJob(previous => ({ ...next, automation: previous.automation }));
+      setJob(previous => ({ ...next, automation: previous.automation, marketCollection: previous.marketCollection }));
     } catch (error) { setJob({ state: "blocked", message: error.message }); }
     finally { setBusy(false); }
   };

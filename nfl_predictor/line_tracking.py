@@ -10,6 +10,19 @@ from .freshness import timestamp
 from .totals import line_analysis, total_forecasts
 
 
+def history_changes(history):
+    """Show real changes and each provider's latest check; keep raw rows in SQL."""
+    signatures, last, retained = {}, {}, set()
+    for index, item in enumerate(history):
+        book = item["book_id"]
+        signature = (item["line"], item["analysis"], item["forecast_issued_at"])
+        if signatures.get(book) != signature:
+            retained.add(index)
+        signatures[book], last[book] = signature, index
+    retained.update(last.values())
+    return [item for index, item in enumerate(history) if index in retained]
+
+
 class LineTracker:
     def __init__(self, path):
         self.path = Path(path)
@@ -72,7 +85,8 @@ class LineTracker:
                 original = json.loads(picked["analysis"]) if picked else None
                 total = row["homeScore"] + row["awayScore"] if row["homeScore"] is not None and row["awayScore"] is not None else None
                 actual = ("Over" if total > picked["line"] else "Under" if total < picked["line"] else "Push") if picked and game.get("completed") and total is not None else None
-                latest_analysis = line_analysis(projection, latest["line"]) if eligible and projection and issued and len(issued) > 10 and timestamp(issued) <= timestamp(observed) and latest else None
+                current_quote = eligible and latest and latest["observed_at"] == observed
+                latest_analysis = line_analysis(projection, latest["line"]) if current_quote and projection and issued and len(issued) > 10 and timestamp(issued) <= timestamp(observed) else None
                 row["marketTotal"] = {"selectionId": f"{row['season']}:{row['week']}:{row['eventId']}:market-total",
                     "firstObservedLine": first["line"] if first else None, "latestLine": latest["line"] if latest else None,
                     "movement": latest["line"] - first["line"] if first else None, "book": latest["book"] if latest else None,
@@ -82,5 +96,6 @@ class LineTracker:
                     "originalIssuedAt": picked["observed_at"] if picked else None,
                     "actualTotal": total if game.get("completed") else None, "actualOutcome": actual,
                     "correct": original["lean"] == actual if original and actual in {"Over", "Under"} else None,
-                    "history": [{**item, "analysis": json.loads(item["analysis"]) if item["analysis"] else None} for item in history]}
+                    "historyObservationCount": len(history),
+                    "history": [{**item, "analysis": json.loads(item["analysis"]) if item["analysis"] else None} for item in history_changes(history)]}
         return payload

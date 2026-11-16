@@ -49,7 +49,8 @@ State lives under `NFL_STATE_DIR` (`/home/nfl-tracker` on Azure):
 The browser reads `/nfl/api/refresh` for live job and automation status. Game
 details show each input's source and age; completed games use age at forecast
 issuance. A successful score refresh does not refresh model-input timestamps.
-This phase does not add continuous background market polling.
+[Background market collection](background-markets.md) runs independently of
+model preparation, so quotes can still be gathered while statistics are blocked.
 
 Manual checks: run the core Python and Node tests, validate the bundle's hashes,
 start the API with an isolated state directory, and read health/status/feed.

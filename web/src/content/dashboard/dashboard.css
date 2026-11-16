@@ -184,3 +184,4 @@
 .nfl-automation p { margin:8px 0 0; line-height:1.5; }
 .nfl-detail-section dd small { display:block; font-size:11px; margin-top:3px; }
 .nfl-input-stale { color:var(--text-secondary); }
+.nfl-history-note { font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
