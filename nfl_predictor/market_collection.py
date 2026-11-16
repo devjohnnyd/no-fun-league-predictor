@@ -117,7 +117,7 @@ class MarketCollection:
                     missing = len(eligible) - len(quoted)
                     finished = all(r["state"] == "post" and timestamp(r["kickoff"]) <= checked for r in rows)
                     state = "complete" if finished else "partial" if missing else "ok"
-                    message = f"{len(quoted)} pregame games with quotes; {missing} without a current quote." if not finished else "All games final; collection finished for this week."
+                    message = f"{len(quoted)} pregame {'game' if len(quoted) == 1 else 'games'} with quotes; {missing} without a current quote." if not finished else "All games final; collection finished for this week."
                     next_at = checked.timestamp() + collection_interval(rows, checked)
                     with self.connect() as db:
                         db.execute("""UPDATE polls SET next_at=?,lease_until=0,last_success=?,last_quote=COALESCE(?,last_quote),
