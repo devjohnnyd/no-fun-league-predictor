@@ -229,8 +229,14 @@ def replace_season(historical, current, season):
     from copy import deepcopy
     result = deepcopy(historical)
     result["created_at"] = current["created_at"]
+    def row_season(row):
+        if isinstance(row, list):  # Compact snap rows begin with game_id.
+            return int(row[0].split("_")[0])
+        return int(row["season"]) if "season" in row else int(row["game_id"].split("_")[0])
     for key in ("schedule", "team_games", "qb_games", "snaps", "injuries", "ngs", "kicks"):
-        result[key] = [row for row in historical[key] if row["season"] != season] + current[key]
+        if any(row_season(row) != season for row in current[key]):
+            raise ValueError("Current-season aggregates contain a different season")
+        result[key] = [row for row in historical[key] if row_season(row) != season] + current[key]
     result["players"] = current["players"]
     result["sources"] = [*historical["sources"], *current["sources"]]
     result["quality"] = {"historical": historical["quality"], "refreshed_season": season, "current": current["quality"]}
