@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 from .dashboard import week_payload
 from .features import normalize_team
 from .sources import ESPN, games_from_scoreboard
-from .storage import read_json
+from .storage import read_json, sha256
 
 
 def fetch_week(season, week):
@@ -85,13 +85,16 @@ class SeasonFeeds:
         self.season, self.week = season, week
         self.metadata_path, self.staff_seed = metadata_path, staff_seed
         self.metadata, self.dataset = read_json(metadata_path), read_json(dataset_path) if dataset_path else None
+        batch_paths = list(batch_paths)
         self.batches = [read_json(path) for path in batch_paths]
+        self.batch_sources = [{"label":Path(path).name,"sha256":sha256(path)} for path in batch_paths]
         self.card_path = card_path
         self.state_dir = Path(state_dir)
         self.line_tracker = LineTracker(self.state_dir / "lines.sqlite3")
         # Reload immutable revisions from earlier local refresh sessions.
         for path in sorted((self.state_dir / "refreshes").glob("*/release/forecast.json")):
             self.batches.append(read_json(path))
+            self.batch_sources.append({"label":path.relative_to(self.state_dir).as_posix(),"sha256":sha256(path)})
             refreshed_dataset = path.parents[1] / "dataset.json.gz"
             reference = path.parents[1] / "dataset-reference.json"
             if reference.is_file():
@@ -107,6 +110,8 @@ class SeasonFeeds:
         self.automation = WeeklyAutomation(self, self.state_dir / "preparation.sqlite3")
         from .market_collection import MarketCollection
         self.market_collection = MarketCollection(self, self.state_dir / "market-collection.sqlite3")
+        from .performance import SeasonPerformance
+        self.performance_feed = SeasonPerformance(self)
 
     def feed(self, week):
         if not 1 <= week <= 18:
@@ -122,9 +127,11 @@ class SeasonFeeds:
             return self.feeds[week]
 
     def install(self, dataset, batch, path):
+        source = {"label":Path(path).relative_to(self.state_dir).as_posix(),"sha256":sha256(path)}
         with self.lock:
             self.dataset = dataset
             self.batches = [*self.batches, batch]
+            self.batch_sources = [*self.batch_sources,source]
             self.feeds = {}
 
 
@@ -144,6 +151,12 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self.send_error(400, "Invalid week")
             return
         route = self.path.split("?", 1)[0]
+        if route == "/performance.json":
+            try:
+                self.send_json(self.feed.performance_feed.get())
+            except Exception:
+                self.send_json({"error":"Performance data unavailable; saved picks are unchanged."},503)
+            return
         if route == "/api/refresh":
             self.send_json({**self.feed.refresh.status, "automation": self.feed.automation.status(), "marketCollection": self.feed.market_collection.status()})
             return

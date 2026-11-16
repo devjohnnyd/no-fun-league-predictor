@@ -29,6 +29,8 @@ python -m nfl_predictor serve --season 2026 --week 10 --metadata data/snapshots/
 
 Open **http://127.0.0.1:4173/**. Choose a week to inspect its complete slate. **Refresh data & analysis** updates scores and lines and starts a serialized pregame rebuild; add `--history-bundle data/raw/v4-2026-11-15` to the serve command to enable current-season statistical rebuilding with the existing historical bundle. See [line movement, original-pick preservation and printed cards](docs/weekly-cards.md). The local line ledger lives in `work/tracker/lines.sqlite3`; back it up to retain prospective history. Failed updates preserve the last successful data and timestamp. Static hosting requires a separately hosted feed/analysis service; it cannot run Python or update the SQLite ledger by itself. See [hosting and portable packaging](docs/hosting.md).
 
+The [season performance page](docs/performance.md) is implemented locally for review. Open `/?page=performance` on the running tracker for original winner records, original market totals, printed-card records, weekly results and confidence calibration. Its refresh only reads saved selections and results; it does not train models or capture new picks. Hosted bundle/deployment follows the review handoff.
+
 ## Latest scores
 
 Use a new output filename every time:
@@ -44,7 +46,7 @@ Completed, pending, tied and unavailable games stay separate. The original batch
 
 ```powershell
 python -m unittest discover -s tests -v
-node --test tests/dashboard.test.mjs
+node --test tests/*.test.mjs
 python -m nfl_predictor evaluate --output work/baseline-reproduction
 python -m nfl_predictor research --dataset data/snapshots/dataset-v4-2026-11-16.json.gz --venues data/snapshots/venues-v4-2026-11-15.json --season 2026 --week 10 --output work/research-reproduction
 ```

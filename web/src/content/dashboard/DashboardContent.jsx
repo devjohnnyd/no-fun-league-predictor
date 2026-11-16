@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Button, DataComponent, Dialog, Dropdown, Icon, SegmentedControl, SortableItem, SortableRegion, useDataApp } from "../../data-app-public.jsx";
 import { filterGames, gameSummary, inputFreshness, kickoffLabel, orderedGames, predictionLabel, sourceAgeLabel, totalRecord } from "./football.mjs";
 import { useAnalysisRefresh } from "./use-analysis-refresh.js";
+import { NflViews, PerformanceContent } from "../performance/PerformanceContent.jsx";
 
 function MarketTotal({ total, state }) {
   if (!total) return <div className="nfl-market-total"><span>Over / under</span><p>Refresh to load available market totals.</p></div>;
@@ -119,6 +120,10 @@ function BrochureCard({ rows, teams, onDetails }) {
 }
 
 export function DashboardContent() {
+  return new URL(window.location.href).searchParams.get("page") === "performance" ? <PerformanceContent /> : <MatchupsContent />;
+}
+
+function MatchupsContent() {
   const { snapshot, queries, visible } = useDataApp();
   const [status, setStatus] = useState("all");
   const [slate, setSlate] = useState("all");
@@ -140,6 +145,7 @@ export function DashboardContent() {
   const marketPicks = all.map(row => row.marketTotal).filter(Boolean);
   const marketRecord = { wins: marketPicks.filter(row => row.correct === true).length, losses: marketPicks.filter(row => row.correct === false).length, picks: marketPicks.filter(row => row.originalPick).length };
   return <div className="nfl-dashboard">
+    <NflViews active="games" />
     <div className="nfl-week-toolbar"><div className="nfl-week-label"><span className="nfl-season">{snapshot.period?.season} NFL season</span><label className="nfl-week-select"><span className="nfl-visually-hidden">NFL week</span><select aria-label="NFL week" value={snapshot.period?.week} onChange={event => {const url = new URL(window.location.href); url.searchParams.set("week", event.target.value); window.location.assign(url);}}>{Object.keys(snapshot.seasonSchedule || {[snapshot.period?.week]:[]}).map(week => <option key={week} value={week}>Week {week}</option>)}</select></label></div><div className="nfl-feed-controls"><span className={`nfl-feed-label ${stale ? "is-stale" : ""}`} role="status"><span className="nfl-feed-dot" />{stale ? "Last update" : snapshot.nflFeed?.status === "connected" ? "Scores & lines" : "Snapshot"} {age.text}</span><Button className="nfl-refresh-button" disabled={busy} onClick={refreshAnalysis} aria-label="Refresh data and analysis"><Icon name="refresh" />{busy ? "Refreshing…" : "Refresh data & analysis"}</Button></div></div>
     {job.message && <div className={`nfl-job-status is-${job.state}`} role="status">{job.week ? `Week ${job.week}: ` : ""}{job.message}</div>}
     {job.automation && <details className="nfl-automation"><summary>Automatic preparation · {job.automation.enabled ? "On" : "Off"}</summary><p>{job.automation.cadence}</p>{job.automation.nextCheckAt && <p>Next due: Week {job.automation.nextWeek} · {new Date(job.automation.nextCheckAt).toLocaleString("en-US", {timeZone:"America/New_York"})} ET</p>}<p>Incomplete statistics retry hourly, up to six full preparations per UTC day. Blocked pregame checks retry every ten minutes until their window closes.</p>{job.automation.error && <p role="status">{job.automation.error}</p>}{job.automation.recent?.[0]?.message && <p>Last scheduled attempt: Week {job.automation.recent[0].week} · {job.automation.recent[0].message}</p>}</details>}

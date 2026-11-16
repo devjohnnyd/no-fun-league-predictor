@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 
 import { isTemporalField } from "./source-provenance.js";
 import { validateMatchupRefresh } from "./content/dashboard/football.mjs";
+import { validatePerformance } from "./content/performance/performance.mjs";
 
 const queryUpdateProperties = {
   queryId: { type: "string" },
@@ -212,7 +213,8 @@ export function useDataApp(snapshot, {
   useEffect(() => {
     const config = snapshot.extensions?.nflLiveFeed;
     if (hosted || !config?.endpoint) return;
-    const endpoint = new URL(config.endpoint, window.location.href);
+    const performance = new URL(window.location.href).searchParams.get("page") === "performance";
+    const endpoint = new URL(performance ? "./performance.json" : config.endpoint, window.location.href);
     if (endpoint.origin !== window.location.origin) return;
     const requestedWeek = Number(new URL(window.location.href).searchParams.get("week") || snapshot.period?.week);
     const week = Number.isInteger(requestedWeek) && requestedWeek >= 1 && requestedWeek <= 18 ? requestedWeek : snapshot.period?.week;
@@ -231,6 +233,20 @@ export function useDataApp(snapshot, {
         const response = await fetch(requestUrl, { cache: "no-store", credentials: "same-origin", signal: controller.signal });
         if (!response.ok) throw new Error("Score feed is unavailable. Showing the last successful update.");
         const next = await response.json();
+        if (performance) {
+          validatePerformance(next, snapshot.period?.season);
+          const nextTime = Date.parse(next.generatedAt);
+          if (nextTime < sourceTime) throw new Error("Performance feed is older than the displayed analysis.");
+          if (!active) return;
+          sourceTime = nextTime;
+          const performanceQueries = Object.fromEntries(Object.entries(next.queries).filter(([key]) => key.startsWith("performance-")));
+          const nextQueries = { ...queriesRef.current, ...performanceQueries };
+          queriesRef.current = nextQueries;
+          setQueries(nextQueries);
+          onSnapshotChange?.(current => ({ ...current, queries: nextQueries, generatedAt: next.generatedAt,
+            nflFeed: { status: "connected", lastSuccessfulSourceAt: next.queries["performance-picks"].source.executedAt, error: null } }));
+          return;
+        }
         const query = next.queries?.matchups;
         if (next.period?.season !== snapshot.period?.season || next.period?.week !== week || !Array.isArray(query?.rows))
           throw new Error("Score feed returned a different week or an invalid payload.");

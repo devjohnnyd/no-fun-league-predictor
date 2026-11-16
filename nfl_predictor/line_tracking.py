@@ -35,6 +35,25 @@ class LineTracker:
             db.row_factory = sqlite3.Row
             return [dict(row) for row in db.execute("SELECT * FROM observations ORDER BY season, week, event, book_id, observed_at")]
 
+    def original_selections(self, season):
+        """Read the first directional pick per game without loading every check."""
+        selected, directional = {}, set()
+        with closing(sqlite3.connect(self.path)) as db:
+            db.row_factory = sqlite3.Row
+            for row in db.execute("SELECT * FROM observations WHERE season=? ORDER BY week,event,observed_at,book_id", (season,)):
+                key = (row["week"], row["event"])
+                if key in directional:
+                    continue
+                analysis = json.loads(row["analysis"]) if row["analysis"] else None
+                if key not in selected:
+                    selected[key] = dict(row)
+                if analysis and analysis.get("lean") in {"Over", "Under"}:
+                    selected[key] = dict(row)
+                    directional.add(key)
+                elif analysis and not selected[key]["analysis"]:
+                    selected[key] = dict(row)
+        return list(selected.values())
+
     def import_rows(self, rows):
         columns = "season week event home away book book_id line observed_at url source_sha256 analysis forecast_issued_at".split()
         with closing(sqlite3.connect(self.path)) as db, db:
