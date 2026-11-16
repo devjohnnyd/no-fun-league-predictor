@@ -2,7 +2,7 @@
 
 Two coding agents (Codex and Claude) work in this repository and in `C:\Projects\personal\johnny-ai`, both as `devjohnnyd`. This file records who owns what so neither overwrites the other. Assignments marked **PROPOSED** are not agreed until the owner (devjohnnyd) confirms them; change the marker to **AGREED** when confirmed.
 
-Last updated: 2026-11-16 by Claude.
+Last updated: 2026-11-16 by Codex.
 
 ## Snapshot at 2026-11-16 ~15:31 ET
 
@@ -18,7 +18,7 @@ The performance feature is ready for review and is not deployed. Host commit `1f
 ### Codex
 
 - **Task:** season performance page. Codex accepts the proposed implementation and deployment role; the overall split remains **PROPOSED** pending devjohnnyd's confirmation.
-- **Status:** implementation complete and ready for Claude review. Predictor feature `021e11e`; host integration `1f58bdd` (local only). No bundle regeneration or deployment performed. Active implementation edit locks below are released; coordinate any new shared-file edits.
+- **Status:** stopped for the day at devjohnnyd's request. Feature `021e11e` has Claude approval for bundling in `13ddc69`, with four non-blocking follow-ups. Host integration `1f58bdd` remains local. No bundle regeneration or deployment performed. Temporary Codex preview is shut down; edit locks are released.
 - **Owns (PROPOSED):**
   - New performance module(s), tests and docs it creates (for example `nfl_predictor/performance.py`, `tests/test_performance.py`, `docs/performance.md`, a new `web/src/content/performance/` folder).
   - Edits to the shared files listed below that the performance page needs.
@@ -31,7 +31,7 @@ The performance feature is ready for review and is not deployed. Host commit `1f
   - Predictor integration: `nfl_predictor/server.py`, `web/src/content/dashboard/DashboardContent.jsx`, `web/src/content/dashboard/dashboard.css`, and `README.md` as needed.
   - Hosted integration: johnny-ai `api/app/nfl.py`, `api/tests/test_nfl.py`, and generated `api/nfl_bundle/**`. A separate hosted route, if needed, will be announced before editing `web/src/pages/nfl/**`.
   - Existing scoring helpers (`nfl_predictor/tracking.py`, `nfl_predictor/line_tracking.py`, `nfl_predictor/model.py`) are read-only dependencies unless a specific integration change is logged first.
-- **Next handoff:** Claude reviews `b21f886..021e11e` in predictor and `240be27..1f58bdd` in the local host checkout. After review, Codex addresses findings, regenerates the pinned bundle, validates the integrated host, and records deployment scope before release. Do not push the host page or regenerate its bundle during review.
+- **Next handoff:** on resume, read Claude's four follow-ups below, address the kickoff-source consistency, date-only timezone boundary, failure logging and user-choice label; verify those changes, then regenerate the pinned bundle and validate the integrated host. Record deployment scope before the coordinated API/SWA release. Do not push the host page by itself.
 
 ### Claude
 
@@ -79,6 +79,10 @@ One deployer at a time: **Codex**. Claude does not run `sync_portfolio`, zip-dep
 ## Handoff log
 
 Newest first.
+
+- **2026-11-16 Codex - stopping point for today (user requested):** Feature `021e11e` is complete, tested and pushed; Claude approval/follow-ups are saved in `13ddc69`. Predictor CI passed through handoff `da2e197`; local validation remains 140 Python + 12 Node + 13 host API tests, both web builds passing. Production remains host `240be27` / predictor bundle `8402bdb`; host integration `1f58bdd` stays committed locally and unpushed. No live state or reference photos changed.
+  - Resume: address the four non-blocking review notes in the next entry, rerun relevant checks, regenerate the host bundle from the reviewed predictor commit, then coordinate API and SWA deployment and smoke-test both navigation links. William Hill card import remains deferred until its new release.
+  - Cleanup: Codex's temporary port-4174 preview is shut down. Its ignored isolated SQLite backup and preview script remain available for a later restart. No new work, polling or deployment is scheduled by Codex; existing production automation is unchanged.
 
 - **2026-11-16 Claude - season performance review: APPROVED for bundling (non-blocking follow-ups below).** Reviewed predictor `b21f886..021e11e` (plus handoff `da2e197`) and local host `240be27..1f58bdd`. No files edited except this one.
   - Verified correct: one earliest winner forecast per game, scored at its original probability, and later revisions shown separately. The first directional market pick per game comes from `original_selections`, using the same order (`observed_at`, `book_id`) as `LineTracker.enrich`'s original pick. Market quotes after kickoff are rejected. Projections issued after their line was captured are rejected. Printed-model picks require a validated saved `total_pick`. User picks have no probability, and late reports are flagged. Ties, pushes, pending, abstained, no-pick and unavailable rows stay separate, and an empty record shows null accuracy. Season Brier and log loss are game-weighted, and the browser validator reconciles them with the weekly rows. The read-only path never calls `enrich` or appends quotes. Host route logs failures and returns 503; Astro page is unlisted/noindex.
