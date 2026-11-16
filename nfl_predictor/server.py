@@ -92,6 +92,9 @@ class SeasonFeeds:
         # Reload immutable revisions from earlier local refresh sessions.
         for path in sorted((self.state_dir / "refreshes").glob("*/release/forecast.json")):
             self.batches.append(read_json(path))
+            refreshed_dataset = path.parents[1] / "dataset.json.gz"
+            if refreshed_dataset.is_file():
+                self.dataset = read_json(refreshed_dataset)
         self.feeds, self.lock = {}, threading.RLock()
         self.refresh = AnalysisRefresh(self, history_bundles, self.state_dir / "refreshes")
 
@@ -100,7 +103,8 @@ class SeasonFeeds:
             raise ValueError("Invalid NFL week")
         with self.lock:
             if week not in self.feeds:
-                card_path = self.card_path if week == self.week and self.card_path else Path(f"data/cards/{self.season}-week{week}.json")
+                card_directory = self.card_path.parent if self.card_path else Path("data/cards")
+                card_path = self.card_path if week == self.week and self.card_path else card_directory / f"{self.season}-week{week}.json"
                 card = read_json(card_path) if card_path.is_file() else None
                 result = WeekFeed(self.season, week, self.metadata, self.batches, self.dataset, card=card, line_tracker=self.line_tracker)
                 result.card_path = card_path if card else None

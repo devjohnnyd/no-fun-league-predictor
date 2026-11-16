@@ -222,3 +222,16 @@ def build_dataset(bundles, output, start=2022, end=2026):
               "historical_timing": "Revised public statistics, final injuries, actual starting QBs and observed weather; first-publication times are not fully available. Retrospective results are conditional on these assumptions."}
     write_new(output, result)
     return result
+
+
+def replace_season(historical, current, season):
+    """Refresh one season while retaining prior-season aggregates and provenance."""
+    from copy import deepcopy
+    result = deepcopy(historical)
+    result["created_at"] = current["created_at"]
+    for key in ("schedule", "team_games", "qb_games", "snaps", "injuries", "ngs", "kicks"):
+        result[key] = [row for row in historical[key] if row["season"] != season] + current[key]
+    result["players"] = current["players"]
+    result["sources"] = [*historical["sources"], *current["sources"]]
+    result["quality"] = {"historical": historical["quality"], "refreshed_season": season, "current": current["quality"]}
+    return result

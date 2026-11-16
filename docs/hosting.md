@@ -1,6 +1,14 @@
 # Dashboard hosting
 
-The site is built locally for separate hosting. No external site was published and no recurring job was installed.
+The dashboard can run locally or within johnnyd.ai's existing API, behind the unlisted `/nfl/` portfolio page. No background forecasting schedule is installed: score/line polling is automatic while a page is visible; full input/model refresh is explicit.
+
+## johnnyd.ai integration
+
+The portfolio route embeds the exact verified dashboard served by its existing Python API. `python -m scripts.sync_portfolio --destination C:/Projects/personal/johnny-ai/api/nfl_bundle` copies the engine, reviewed data, immutable forecasts, official logos and the existing local market observations into a checksum-bound bundle. Commit the engine first so the bundle pins its actual revision. The deployment never contains API keys or raw historical downloads.
+
+The API stores ongoing line history and forecast revisions under persistent `/home/nfl-tracker`, separate from deployment files. Bootstrap observations are imported idempotently, retaining earlier selections. Its refresh rebuilds the current season from fresh public sources and combines it with unchanged historical aggregates, preserving each source's original receipt. The shared host serializes full jobs and limits them to one per ten minutes and six per UTC day; ordinary cached score/line updates remain available.
+
+`/nfl/` is absent from portfolio navigation and requests `noindex, nofollow, noarchive`. It is an unlisted public URL, not an authenticated private page.
 
 ## Build and run with live scores
 

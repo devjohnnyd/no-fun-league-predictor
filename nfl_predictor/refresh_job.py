@@ -28,7 +28,7 @@ class AnalysisRefresh:
         self.status["week"] = week
         try:
             from .acquire import acquire
-            from .dataset import build_dataset
+            from .dataset import build_dataset, replace_season
             from .engine import FeatureEngine
             from .forecast import issue
             from .live import coverage, prepare
@@ -37,14 +37,19 @@ class AnalysisRefresh:
             feed = self.manager.feed(week)
             feed.updated = 0
             feed.get()
-            if not self.history_bundles:
-                raise ValueError("Fresh scores and lines loaded. Full model refresh requires --history-bundle with the existing historical source bundle.")
+            if not self.history_bundles and not getattr(self.manager, "dataset", None):
+                raise ValueError("Fresh scores and lines loaded. Full model refresh requires a historical dataset or source bundle.")
             root = self.output / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
             self.status.update(message="Downloading current-season statistics…")
             acquire(self.manager.season, self.manager.season, root / "sources")
             self.status.update(message="Validating and rebuilding statistics…")
             dataset_path = root / "dataset.json.gz"
-            dataset = build_dataset([*self.history_bundles, root / "sources"], dataset_path, end=self.manager.season)
+            if self.history_bundles:
+                dataset = build_dataset([*self.history_bundles, root / "sources"], dataset_path, end=self.manager.season)
+            else:
+                current = build_dataset([root / "sources"], root / "current-season.json.gz", start=self.manager.season, end=self.manager.season)
+                dataset = replace_season(self.manager.dataset, current, self.manager.season)
+                write_new(dataset_path, dataset)
             complete = coverage(FeatureEngine(dataset, self.manager.metadata), self.manager.season, week)
             if not complete["complete"]:
                 count = len(complete["missing_games"])

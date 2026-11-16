@@ -17,6 +17,17 @@ class LineTracker:
         with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("CREATE TABLE IF NOT EXISTS observations (season INTEGER, week INTEGER, event TEXT, home TEXT, away TEXT, book TEXT, book_id TEXT, line REAL, observed_at TEXT, url TEXT, source_sha256 TEXT, analysis TEXT, forecast_issued_at TEXT, PRIMARY KEY(season, week, event, book_id, observed_at))")
 
+    def export_rows(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            db.row_factory = sqlite3.Row
+            return [dict(row) for row in db.execute("SELECT * FROM observations ORDER BY season, week, event, book_id, observed_at")]
+
+    def import_rows(self, rows):
+        columns = "season week event home away book book_id line observed_at url source_sha256 analysis forecast_issued_at".split()
+        with closing(sqlite3.connect(self.path)) as db, db:
+            for row in rows:
+                db.execute("INSERT OR IGNORE INTO observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [row[key] for key in columns])
+
     def enrich(self, payload, manifest, batches, now=None):
         now = now or datetime.now(timezone.utc)
         forecasts = total_forecasts(batches, latest=True)

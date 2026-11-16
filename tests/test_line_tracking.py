@@ -74,6 +74,18 @@ class LineTrackingTests(unittest.TestCase):
         self.assertIsNone(result["originalPick"])
         self.assertEqual(result["history"], [])
 
+    def test_bootstrap_import_is_idempotent_and_retains_original_pick(self):
+        first = self.observe()
+        exported = self.store.export_rows()
+        other = LineTracker(Path(self.temp.name) / "hosted.sqlite3")
+        other.import_rows(exported)
+        other.import_rows(exported)
+        self.assertEqual(other.export_rows(), exported)
+        self.store = other
+        self.game["total_quotes"][0]["line"] = 45.5
+        latest = self.observe("2026-11-16T14:00:00Z")
+        self.assertEqual(latest["originalPick"], first["originalPick"])
+
     def test_live_score_and_push_stay_separate_from_decisive_results(self):
         self.game["total_quotes"][0]["line"] = 42
         self.observe()

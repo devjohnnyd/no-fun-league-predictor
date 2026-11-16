@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 export function useAnalysisRefresh(week) {
+  const endpoint = new URL("./api/refresh", window.location.href).href;
   const [job, setJob] = useState({ state: "idle", message: "" });
   const [busy, setBusy] = useState(false);
   const running = job.state === "running";
@@ -8,7 +9,7 @@ export function useAnalysisRefresh(week) {
     let active = true;
     const check = async () => {
       try {
-        const response = await fetch("/api/refresh", { cache: "no-store" });
+        const response = await fetch(endpoint, { cache: "no-store" });
         if (!response.ok) return;
         const next = await response.json();
         if (!active) return;
@@ -19,13 +20,13 @@ export function useAnalysisRefresh(week) {
     void check();
     const timer = setInterval(check, running ? 2500 : 30000);
     return () => { active = false; clearInterval(timer); };
-  }, [week, running]);
+  }, [week, running, endpoint]);
   const refresh = async () => {
     if (busy || running) return;
     setBusy(true);
     window.dispatchEvent(new Event("nfl:refresh-scores"));
     try {
-      const response = await fetch("/api/refresh", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ week }) });
+      const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ week }) });
       if (!response.ok) throw new Error("Scores and lines requested. Full model refresh requires the local analysis server.");
       setJob(await response.json());
     } catch (error) { setJob({ state: "blocked", message: error.message }); }
