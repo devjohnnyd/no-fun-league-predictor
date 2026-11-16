@@ -1,0 +1,13 @@
+[
+  {
+    "event_id": "401873065",
+    "checked_at": "2026-11-16T01:59:01.269337+00:00",
+    "stage": "preliminary",
+    "ready": false,
+    "reasons": [
+      "stats: missing or unsuccessful source",
+      "weather: missing or unsuccessful source",
+      "staff: missing or unsuccessful source"
+    ]
+  }
+]

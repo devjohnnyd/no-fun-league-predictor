@@ -1,0 +1,12 @@
+[
+  {
+    "event_id": "401873065",
+    "checked_at": "2026-11-16T02:03:53.864375+00:00",
+    "stage": "preliminary",
+    "ready": false,
+    "reasons": [
+      "stats: missing or unsuccessful source",
+      "staff: missing or unsuccessful source"
+    ]
+  }
+]
