@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import vm from 'node:vm';
+const html=await fs.readFile(new URL('../nfl-week-10-picks.html',import.meta.url),'utf8');
+const data=JSON.parse(await fs.readFile(new URL('model.json',import.meta.url),'utf8'));
+const config=JSON.parse(html.match(/<script type="application\/json" data-viz-chart>([\s\S]*?)<\/script>/)[1]);
+if(config.rows.length!==13||config.columns.length!==2||config.spec.type!=='horizontalBar')throw Error('Chart structure');
+if(config.spec.xDomain[0]!==0||config.spec.xDomain[1]!==1||config.spec.valueFormat.style!=='percent')throw Error('Probability scale');
+config.rows.forEach((row,i)=>{if(row[1]!==data.forecast[i].pick_probability)throw Error('Chart data mismatch');});
+const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1];
+new vm.SourceTextModule(script);
+if(!html.includes('id="nfl-week-10-picks"')||!script.includes('getElementById("nfl-week-10-picks")')||!script.includes('charts/1.2.3/element.js'))throw Error('Chart mounting contract');
+console.log('Inline chart: all 13 current probabilities, fixed 0–100% scale, markup references and module syntax verified. Rendering unverified.');

@@ -1,0 +1,547 @@
+[
+  {
+    "file": "depth_BUF.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/2/depthcharts",
+    "bytes": 197708,
+    "retrieved_utc": "2026-11-11T04:01:12Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_BUF.html",
+    "url": "https://www.buffalobills.com/team/coaches-roster/",
+    "bytes": 348586,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_DEN.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/7/depthcharts",
+    "bytes": 217772,
+    "retrieved_utc": "2026-11-11T04:01:12Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_DEN.html",
+    "url": "https://www.denverbroncos.com/team/coaches-roster/",
+    "bytes": 346353,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_SF.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/25/depthcharts",
+    "bytes": 247089,
+    "retrieved_utc": "2026-11-11T04:01:12Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_SF.html",
+    "url": "https://www.49ers.com/team/coaches-roster/",
+    "bytes": 341086,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_CHI.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/3/depthcharts",
+    "bytes": 217532,
+    "retrieved_utc": "2026-11-11T04:01:12Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_CHI.html",
+    "url": "https://www.chicagobears.com/team/coaches-roster/",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "file": "depth_DET.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/8/depthcharts",
+    "bytes": 228029,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_DET.html",
+    "url": "https://www.detroitlions.com/team/coaches-roster/",
+    "bytes": 335100,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_PIT.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/23/depthcharts",
+    "bytes": 213476,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_PIT.html",
+    "url": "https://www.steelers.com/team/coaches-roster/",
+    "bytes": 353756,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_CIN.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/4/depthcharts",
+    "bytes": 196715,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_CIN.html",
+    "url": "https://www.bengals.com/team/coaches-roster/",
+    "bytes": 334414,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_JAX.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/30/depthcharts",
+    "bytes": 208088,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_JAX.html",
+    "url": "https://www.jaguars.com/team/coaches-roster/",
+    "bytes": 355624,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_KC.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/12/depthcharts",
+    "bytes": 222013,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_KC.html",
+    "url": "https://www.chiefs.com/team/coaches-roster/",
+    "bytes": 346538,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_GB.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/9/depthcharts",
+    "bytes": 249706,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_GB.html",
+    "url": "https://www.packers.com/team/coaches-roster/",
+    "bytes": 340476,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_MIN.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/16/depthcharts",
+    "bytes": 196419,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_MIN.html",
+    "url": "https://www.vikings.com/team/coaches-roster/",
+    "bytes": 342319,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_NYG.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/19/depthcharts",
+    "bytes": 231164,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_NYG.html",
+    "url": "https://www.giants.com/team/coaches-roster/",
+    "bytes": 355501,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_NE.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/17/depthcharts",
+    "bytes": 231834,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_NE.html",
+    "url": "https://www.patriots.com/team/coaches-roster/",
+    "bytes": 392981,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_LAR.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/14/depthcharts",
+    "bytes": 228183,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_LAR.html",
+    "url": "https://www.therams.com/team/coaches-roster/",
+    "bytes": 331207,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_CLE.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/5/depthcharts",
+    "bytes": 217523,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_CLE.html",
+    "url": "https://www.clevelandbrowns.com/team/coaches-roster/",
+    "bytes": 359898,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_SEA.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/26/depthcharts",
+    "bytes": 201731,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_SEA.html",
+    "url": "https://www.seahawks.com/team/coaches-roster/",
+    "bytes": 360164,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_LV.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/13/depthcharts",
+    "bytes": 198787,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_LV.html",
+    "url": "https://www.raiders.com/team/coaches-roster/",
+    "bytes": 357367,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_DAL.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/6/depthcharts",
+    "bytes": 204521,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_DAL.html",
+    "url": "https://www.dallascowboys.com/team/coaches-roster/",
+    "bytes": 327166,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_BAL.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/33/depthcharts",
+    "bytes": 216927,
+    "retrieved_utc": "2026-11-11T04:01:13Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_BAL.html",
+    "url": "https://www.baltimoreravens.com/team/coaches-roster/",
+    "bytes": 355212,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_NO.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/18/depthcharts",
+    "bytes": 211516,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_NO.html",
+    "url": "https://www.neworleanssaints.com/team/coaches-roster/",
+    "bytes": 331035,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_HOU.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/34/depthcharts",
+    "bytes": 228313,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_HOU.html",
+    "url": "https://www.houstontexans.com/team/coaches-roster/",
+    "bytes": 517051,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_CAR.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/29/depthcharts",
+    "bytes": 229123,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_CAR.html",
+    "url": "https://www.panthers.com/team/coaches-roster/",
+    "bytes": 365214,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_ARI.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/22/depthcharts",
+    "bytes": 231433,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_ARI.html",
+    "url": "https://www.azcardinals.com/team/coaches-roster/",
+    "bytes": 340917,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_TB.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/27/depthcharts",
+    "bytes": 187108,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_TB.html",
+    "url": "https://www.buccaneers.com/team/coaches-roster/",
+    "bytes": 328459,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_ATL.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/1/depthcharts",
+    "bytes": 212897,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_ATL.html",
+    "url": "https://www.atlantafalcons.com/team/coaches-roster/",
+    "bytes": 356986,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_WSH.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/28/depthcharts",
+    "bytes": 223528,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_WSH.html",
+    "url": "https://www.commanders.com/team/coaches-roster/",
+    "bytes": 340884,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_NYJ.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/20/depthcharts",
+    "bytes": 211708,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_NYJ.html",
+    "url": "https://www.newyorkjets.com/team/coaches-roster/",
+    "bytes": 326855,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_IND.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/11/depthcharts",
+    "bytes": 197936,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_IND.html",
+    "url": "https://www.colts.com/team/coaches-roster/",
+    "bytes": 351212,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_MIA.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/15/depthcharts",
+    "bytes": 200077,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_MIA.html",
+    "url": "https://www.miamidolphins.com/team/coaches-roster/",
+    "bytes": 330904,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_TEN.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/10/depthcharts",
+    "bytes": 198266,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_TEN.html",
+    "url": "https://www.tennesseetitans.com/team/coaches-roster/",
+    "bytes": 345526,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_PHI.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/21/depthcharts",
+    "bytes": 204589,
+    "retrieved_utc": "2026-11-11T04:01:14Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_PHI.html",
+    "url": "https://www.philadelphiaeagles.com/team/coaches-roster/",
+    "bytes": 337078,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "depth_LAC.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/24/depthcharts",
+    "bytes": 227576,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "staff_LAC.html",
+    "url": "https://www.chargers.com/team/coaches-roster/",
+    "bytes": 351643,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873053.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873053",
+    "bytes": 110375,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873054.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873054",
+    "bytes": 104139,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873055.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873055",
+    "bytes": 104252,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873056.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873056",
+    "bytes": 109968,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873057.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873057",
+    "bytes": 104571,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873058.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873058",
+    "bytes": 110870,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873059.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873059",
+    "bytes": 110017,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873060.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873060",
+    "bytes": 103970,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873061.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873061",
+    "bytes": 103751,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873062.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873062",
+    "bytes": 110829,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873063.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873063",
+    "bytes": 110625,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873064.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873064",
+    "bytes": 104298,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "summary_401873065.json",
+    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401873065",
+    "bytes": 114127,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  },
+  {
+    "file": "coaches-guide.pdf",
+    "url": "https://g.espncdn.com/s/ffldraftkit/26/NFLDK2026_CS_ClayProjections2026.pdf",
+    "bytes": 5108861,
+    "retrieved_utc": "2026-11-11T04:01:15Z",
+    "status": "ok"
+  }
+]

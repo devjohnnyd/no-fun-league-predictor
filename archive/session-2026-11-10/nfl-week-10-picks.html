@@ -1,0 +1,92 @@
+<section id="nfl-week-10-picks" data-viz-composition>
+  <div data-viz-container></div>
+  <script type="application/json" data-viz-chart>
+{
+  "id": "nfl-week-10-picks",
+  "title": "Week 10 updated model picks",
+  "description": "November 15\u201316, 2026. Model 2 includes projected QBs, snap-weighted injuries, team efficiency, rest, HC changes and wind/temperature interactions. Tuesday statuses and roof assumptions remain provisional. Ties are not modeled.",
+  "height": 540,
+  "spec": {
+    "type": "horizontalBar",
+    "y": "Matchup and pick",
+    "x": "Estimated win probability",
+    "xLabel": "Estimated win probability",
+    "xDomain": [
+      0,
+      1
+    ],
+    "showValues": true,
+    "showLegend": false,
+    "sortOrder": "original",
+    "valueFormat": {
+      "style": "percent",
+      "maximumFractionDigits": 0
+    }
+  },
+  "columns": [
+    "Matchup and pick",
+    "Estimated win probability"
+  ],
+  "rows": [
+    [
+      "Patriots at Lions: Lions",
+      0.5640479056604115
+    ],
+    [
+      "Bills at Jets: Bills",
+      0.7496573117582853
+    ],
+    [
+      "Panthers at Saints: Saints",
+      0.5248057984408514
+    ],
+    [
+      "Texans at Browns: Texans",
+      0.6748955308808808
+    ],
+    [
+      "Jaguars at Titans: Jaguars",
+      0.7322728117638622
+    ],
+    [
+      "Chiefs at Falcons: Chiefs",
+      0.6282316170249741
+    ],
+    [
+      "Dolphins at Colts: Colts",
+      0.6752498482458964
+    ],
+    [
+      "Vikings at Packers: Packers",
+      0.7219073593305388
+    ],
+    [
+      "Rams at Cardinals: Rams",
+      0.8664742485785664
+    ],
+    [
+      "Seahawks at Raiders: Seahawks",
+      0.7191128785428493
+    ],
+    [
+      "49ers at Cowboys: 49ers",
+      0.6196718325484653
+    ],
+    [
+      "Sunday night Steelers at Bengals: Bengals",
+      0.5107129563583636
+    ],
+    [
+      "Monday Chargers at Ravens: Ravens",
+      0.6428313322143847
+    ]
+  ]
+}
+</script>
+</section>
+<script type="module">
+  import {mountChart} from "https://persistent.oaistatic.com/plugins/visualize/charts/1.2.3/element.js";
+  const root = document.getElementById("nfl-week-10-picks");
+  const config = JSON.parse(root.querySelector("[data-viz-chart]").textContent);
+  mountChart(root.querySelector("[data-viz-container]"), config);
+</script>
