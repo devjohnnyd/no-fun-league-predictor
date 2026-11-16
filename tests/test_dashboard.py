@@ -78,6 +78,21 @@ class DashboardTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Incomplete"):
                 feed.get()
 
+    def test_forecast_only_feed_recovers_when_unforecasted_game_returns(self):
+        feed = WeekFeed(2026, 10, self.metadata, [self.batch])
+        partial = {**self.manifest, "games": [g for g in self.manifest["games"] if g["slate_eligible"]]}
+        with patch("nfl_predictor.server.fetch_week", return_value=partial):
+            feed.get()
+        feed.updated = 0
+        with patch("nfl_predictor.server.fetch_week", return_value=self.manifest):
+            full = feed.get()
+        self.assertEqual(len(full["queries"]["matchups"]["rows"]), 14)
+        feed.updated = 0
+        with patch("nfl_predictor.server.fetch_week", return_value=partial):
+            with self.assertRaisesRegex(ValueError, "Incomplete"):
+                feed.get()
+        self.assertIs(feed.cached, full)
+
     def test_partial_refresh_retains_complete_cache_and_can_recover(self):
         feed = WeekFeed(2026, 10, self.metadata, [self.batch])
         with patch("nfl_predictor.server.fetch_week", return_value=self.manifest):

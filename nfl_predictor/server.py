@@ -67,9 +67,10 @@ class WeekFeed:
                 if any(actual[event] != teams for event, teams in self.expected_games.items()):
                     raise ValueError("Weekly score feed team identity changed")
                 result = week_payload(manifest, self.metadata, self.batches, self.dataset, self.card)
-                # Without a schedule, forecasts establish a minimum first slate;
-                # a successful response then pins every game, including Thursday.
-                self.expected_games, self.strict_slate = actual, True
+                # Forecast-only feeds may initially omit an unforecasted game.
+                # Allow growth when it returns, while protecting all seen games.
+                # The browser independently checks its full reviewed slate.
+                self.expected_games = actual
                 self.cached, self.updated = result, time.monotonic()
             return self.cached
 
