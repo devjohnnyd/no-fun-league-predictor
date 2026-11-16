@@ -61,3 +61,48 @@ class DashboardTests(unittest.TestCase):
                 for side in ("home", "away")]}]}]}
         with self.assertRaises(ValueError):
             games_from_scoreboard(payload)
+
+    def test_first_partial_feed_is_rejected_against_saved_forecasts(self):
+        partial = {**self.manifest, "games": self.manifest["games"][:1]}
+        feed = WeekFeed(2026, 10, self.metadata, [self.batch])
+        with patch("nfl_predictor.server.fetch_week", return_value=partial):
+            with self.assertRaisesRegex(ValueError, "Incomplete"):
+                feed.get()
+        self.assertIsNone(feed.cached)
+
+    def test_schedule_requires_unforecasted_thursday_game_on_first_fetch(self):
+        dataset = read_json(ROOT / "data/snapshots/dataset-v4-2026-11-16.json.gz")
+        partial = {**self.manifest, "games": [g for g in self.manifest["games"] if g["slate_eligible"]]}
+        feed = WeekFeed(2026, 10, self.metadata, [self.batch], dataset)
+        with patch("nfl_predictor.server.fetch_week", return_value=partial):
+            with self.assertRaisesRegex(ValueError, "Incomplete"):
+                feed.get()
+
+    def test_partial_refresh_retains_complete_cache_and_can_recover(self):
+        feed = WeekFeed(2026, 10, self.metadata, [self.batch])
+        with patch("nfl_predictor.server.fetch_week", return_value=self.manifest):
+            complete = feed.get()
+        feed.updated = 0
+        partial = {**self.manifest, "games": [g for g in self.manifest["games"] if g["slate_eligible"]]}
+        with patch("nfl_predictor.server.fetch_week", return_value=partial):
+            with self.assertRaisesRegex(ValueError, "Incomplete"):
+                feed.get()
+        self.assertIs(feed.cached, complete)
+        self.assertEqual(feed.cached["generatedAt"], self.manifest["retrieved_at"])
+        recovered = {**self.manifest, "retrieved_at": "2026-11-16T14:00:00Z"}
+        with patch("nfl_predictor.server.fetch_week", return_value=recovered):
+            latest = feed.get()
+        self.assertEqual(len(latest["queries"]["matchups"]["rows"]), 14)
+        self.assertEqual(latest["generatedAt"], recovered["retrieved_at"])
+
+    def test_refresh_rejects_changed_identity_on_unforecasted_game(self):
+        feed = WeekFeed(2026, 10, self.metadata, [self.batch])
+        with patch("nfl_predictor.server.fetch_week", return_value=self.manifest):
+            complete = feed.get()
+        changed = copy.deepcopy(self.manifest)
+        next(g for g in changed["games"] if not g["slate_eligible"])["home"] = "BAL"
+        feed.updated = 0
+        with patch("nfl_predictor.server.fetch_week", return_value=changed):
+            with self.assertRaisesRegex(ValueError, "identity"):
+                feed.get()
+        self.assertIs(feed.cached, complete)

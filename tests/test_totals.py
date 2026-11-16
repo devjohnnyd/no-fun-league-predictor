@@ -66,6 +66,32 @@ class TotalsTests(unittest.TestCase):
         forecasts = {row["event_id"]: {"home": row["home"], "away": row["away"], "total_projection": {"total_samples": [30,40,50]}} for row in card["games"]}
         self.assertTrue(all(row["analysis"] is None for row in card_rows(card, games, forecasts)))
 
+    def test_even_leans_are_abstentions_in_rows_and_summary(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        card["received_at"] = "2026-11-13T12:00:00Z"
+        results = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")
+        batch = {"issued_at": "2026-11-13T13:00:00Z", "forecast": [
+            {"espn_id": row["event_id"], "home": row["home"], "away": row["away"],
+             "total_projection": {"total_samples": [30, 60]}} for row in card["games"]]}
+        result = score_card(card, [batch], results)
+        self.assertEqual(result["abstentions"], 3)
+        self.assertEqual(result["metrics"]["games"], 0)
+        self.assertIsNone(result["metrics"]["accuracy"])
+        self.assertTrue(all(row["correct"] is None for row in result["games"]))
+        self.assertTrue(all(row["predictionStatus"] == "No directional lean (50/50)" for row in result["games"]))
+
+    def test_directional_pick_summary_agrees_with_each_card(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        card["received_at"] = "2026-11-13T12:00:00Z"
+        results = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")
+        batch = {"issued_at": "2026-11-13T13:00:00Z", "forecast": [
+            {"espn_id": row["event_id"], "home": row["home"], "away": row["away"],
+             "total_projection": {"total_samples": [30, 35, 60]}} for row in card["games"]]}
+        result = score_card(card, [batch], results)
+        self.assertEqual(result["abstentions"], 0)
+        self.assertEqual(result["metrics"]["games"], 3)
+        self.assertEqual(result["metrics"]["correct"], sum(row["correct"] for row in result["games"]))
+
     def test_regression_accepts_tied_nfl_games_and_keeps_preprocessing_fixed(self):
         train = pd.DataFrame({"x": [1., 2., 3., 4.], "total": [40, 42, 38, 44]})
         model = fit_total(train, ["x"], 60.)

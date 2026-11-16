@@ -37,7 +37,7 @@ def feature_frame(dataset, venues=None):
     return frame
 
 
-def rolling(frame, season, names, alpha, through_week=18):
+def rolling(frame, season, names, alpha, through_week=18, allow_empty=False):
     decisive = frame[frame.target.isin([0, 1])]
     result = []
     weeks = sorted(decisive.loc[decisive.season.eq(season) & decisive.week.le(through_week), "week"].unique())
@@ -54,6 +54,9 @@ def rolling(frame, season, names, alpha, through_week=18):
         part["training_last_week"] = int(train.loc[train.season.eq(train.season.max()), "week"].max())
         result.append(part)
     if not result:
+        if allow_empty and through_week == 0:
+            return decisive.iloc[:0].copy().assign(p=pd.Series(dtype=float), training_rows=pd.Series(dtype=int),
+                training_last_season=pd.Series(dtype=int), training_last_week=pd.Series(dtype=int))
         raise ValueError(f"No evaluation games for {season}")
     return pd.concat(result, ignore_index=True)
 
@@ -158,7 +161,7 @@ def research(dataset_path, output, season=2026, week=10, venues_path=None):
         selection.append({"family": family, "calibrated": False, "alpha": best["alpha"], **scores(val.target, val.p)})
         selection.append({"family": family, "calibrated": True, "alpha": best["alpha"],
                           **scores(val.target, calibrated(calibration[family], val.p))})
-        rows = rolling(frame, season, names, best["alpha"], through_week=week - 1)
+        rows = rolling(frame, season, names, best["alpha"], through_week=week - 1, allow_empty=week == 1)
         diagnostic[family] = rows
         diagnostics.append({"family": family, "calibrated": False, "alpha": best["alpha"], **scores(rows.target, rows.p)})
         diagnostics.append({"family": family, "calibrated": True, "alpha": best["alpha"],

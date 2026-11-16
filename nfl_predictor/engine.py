@@ -375,12 +375,21 @@ class FeatureEngine:
             ap = at.get("backup_qb_id")
         if live_context is not None and (not hp or not ap):
             raise ValueError("Both projected QB identities must be resolved")
-        hs, aws = self.team_state(home, season, week), self.team_state(away, season, week)
-        hq, aq = self.qb_state(hp, season, week), self.qb_state(ap, season, week)
         hrows, arows = ht.get("injuries"), at.get("injuries")
         if scenario == "questionable_out":
+            def available_backup(team, rows, starter):
+                if not any(r.get("pid") == starter and r.get("status") == "Questionable" for r in rows or []):
+                    return starter
+                backup = team.get("backup_qb_id")
+                unavailable = {r.get("pid") for r in rows or [] if r.get("status") in OUT | {"Questionable"}}
+                if not backup or backup == starter or backup in unavailable:
+                    raise ValueError("Questionable QB out scenario requires an available verified backup")
+                return backup
+            hp, ap = available_backup(ht, hrows, hp), available_backup(at, arows, ap)
             hrows = [{**r, "status": "Out" if r.get("status") == "Questionable" else r.get("status")} for r in hrows or []]
             arows = [{**r, "status": "Out" if r.get("status") == "Questionable" else r.get("status")} for r in arows or []]
+        hs, aws = self.team_state(home, season, week), self.team_state(away, season, week)
+        hq, aq = self.qb_state(hp, season, week), self.qb_state(ap, season, week)
         hi, ai = self.injuries_state(home, season, week, hrows), self.injuries_state(away, season, week, arows)
         hc, ac = ht.get("staff", {}).get("head_coach", game.get("home_coach")), at.get("staff", {}).get("head_coach", game.get("away_coach"))
         old_h = {self.schedule[r["game_id"]]["home_coach" if self.schedule[r["game_id"]]["home_team"] == home else "away_coach"] for r in self.history(home, season, week) if r["season"] == season - 1}

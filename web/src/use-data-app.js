@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { isTemporalField } from "./source-provenance.js";
+import { validateMatchupRefresh } from "./content/dashboard/football.mjs";
 
 const queryUpdateProperties = {
   queryId: { type: "string" },
@@ -231,14 +232,15 @@ export function useDataApp(snapshot, {
         const ids = query.rows.map(row => row.eventId);
         if (!ids.length || new Set(ids).size !== ids.length || query.rows.some(row => !row.homeCode || !row.awayCode))
           throw new Error("Score feed has missing or duplicated games.");
+        validateMatchupRefresh(queriesRef.current.matchups?.rows, query.rows);
         const nextTime = Date.parse(next.generatedAt);
         if (!Number.isFinite(nextTime) || nextTime < sourceTime)
           throw new Error("Score feed is older than the displayed data.");
         if (!active) return;
-        sourceTime = nextTime;
         const brochure = next.queries?.brochure;
         if (brochure && (!Array.isArray(brochure.rows) || brochure.rows.some(row => !ids.includes(row.eventId))))
           throw new Error("Brochure feed does not match this week's games.");
+        sourceTime = nextTime;
         const nextQueries = { ...queriesRef.current, matchups: query, ...(brochure ? {brochure} : {}) };
         queriesRef.current = nextQueries;
         setQueries(nextQueries);

@@ -33,3 +33,5 @@ python -m nfl_predictor score-card --card data/cards/2026-week10.json --forecast
 ```
 
 Scoring uses exact saved forecasts and lines, rejects mismatched weeks and counts pushes, pending and unavailable predictions separately. Brier/log loss and pick accuracy condition on a non-push result. Save new weekly configuration and forecast/review files to Git; do not rewrite an earlier card to match outcomes.
+
+An exact 50/50 over/under estimate is **No lean**, not a directional pick. It has `correct: null`, is excluded from the directional pick metrics, and appears separately in `abstentions`. Both the cards and summary use this policy.

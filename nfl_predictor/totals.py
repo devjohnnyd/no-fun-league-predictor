@@ -57,12 +57,14 @@ def predict_total(model, frame):
 
 
 def total_scores(rows):
+    if rows.empty:
+        return {"games": 0, "mae": None, "rmse": None, "mean_error": None}
     error = rows.total.to_numpy(float) - rows.predicted.to_numpy(float)
     return {"games": len(rows), "mae": float(np.mean(np.abs(error))), "rmse": float(np.sqrt(np.mean(error ** 2))),
             "mean_error": float(np.mean(error))}
 
 
-def rolling_totals(frame, year, names, alpha, through_week=18):
+def rolling_totals(frame, year, names, alpha, through_week=18, allow_empty=False):
     output = []
     for week in sorted(frame.loc[frame.season.eq(year) & frame.week.le(through_week), "week"].unique()):
         train = frame[(frame.season < year) | (frame.season.eq(year) & frame.week.lt(week))]
@@ -73,6 +75,8 @@ def rolling_totals(frame, year, names, alpha, through_week=18):
         test["mean_baseline"] = train.total.mean()
         output.append(test)
     if not output:
+        if allow_empty and through_week == 0:
+            return frame.iloc[:0].copy().assign(predicted=pd.Series(dtype=float), mean_baseline=pd.Series(dtype=float))
         raise ValueError("No rolling total-points evaluation rows")
     return pd.concat(output, ignore_index=True)
 
@@ -132,7 +136,7 @@ def research_totals(dataset_path, venues_path, season, week, output):
         residuals[family] = errors.tolist()
     selected = min(selection, key=lambda r: r["mae"])
     names, alpha = candidates[selected["family"]]
-    diagnostic = rolling_totals(frame, season, names, alpha, week - 1)
+    diagnostic = rolling_totals(frame, season, names, alpha, week - 1, allow_empty=week == 1)
     mean_baseline = diagnostic.copy()
     mean_baseline["predicted"] = mean_baseline.mean_baseline
     train = frame[(frame.season < season) | (frame.season.eq(season) & frame.week.lt(week))]
@@ -184,10 +188,10 @@ def card_rows(card, games, forecasts):
         output.append({"eventId": event, "homeCode": game["home"], "awayCode": game["away"], "line": line,
                        "actualTotal": total, "actualOutcome": actual, "state": game["state"],
                        "projection": projection_row, "analysis": analysis,
-                       "predictionStatus": "Experimental pregame model" if analysis else "No pregame forecast recorded",
+                       "predictionStatus": "No directional lean (50/50)" if analysis and analysis["lean"] == "Even" else "Experimental pregame model" if analysis else "No pregame forecast recorded",
                        "source": card.get("source"), "lineReceivedAt": card.get("received_at"),
                        "forecastIssuedAt": issued_at if projection_row else None,
-                       "correct": (analysis["lean"] == actual) if analysis and actual in {"Over", "Under"} else None})
+                       "correct": (analysis["lean"] == actual) if analysis and analysis["lean"] != "Even" and actual in {"Over", "Under"} else None})
     return output
 
 
@@ -204,11 +208,12 @@ def score_card(card, batches, results):
                 if event not in forecasts or timestamp(candidate["issued_at"]) > timestamp(forecasts[event]["issued_at"]):
                     forecasts[event] = candidate
     rows = card_rows(card, results["games"], forecasts)
-    decided = [row for row in rows if row["analysis"] and row["actualOutcome"] in {"Over", "Under"}]
+    decided = [row for row in rows if row["correct"] is not None]
     probabilities = [row["analysis"]["over_probability"] / (row["analysis"]["over_probability"] + row["analysis"]["under_probability"]) for row in decided]
     return {"season": card["season"], "week": card["week"], "results_retrieved_at": results["retrieved_at"],
             "games": rows, "metrics": scores([int(row["actualOutcome"] == "Over") for row in decided], probabilities),
             "pushes": sum(row["actualOutcome"] == "Push" for row in rows),
+            "abstentions": sum(bool(row["analysis"]) and row["analysis"]["lean"] == "Even" for row in rows),
             "unavailable_predictions": sum(row["analysis"] is None for row in rows),
             "pending": sum(row["actualOutcome"] is None for row in rows),
-            "policy": "Only timestamped pregame projections and lines count. Probabilities/metrics condition on no push; pushes and missing picks stay separate."}
+            "policy": "Only timestamped pregame directional picks and lines count. Metrics condition on no push; 50/50 abstentions, pushes and missing picks stay separate."}

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { filterGames, gameSummary, orderedGames, sourceAgeLabel } from "../web/src/content/dashboard/football.mjs";
+import { filterGames, gameSummary, orderedGames, sourceAgeLabel, validateMatchupRefresh } from "../web/src/content/dashboard/football.mjs";
 
 const rows = [
   { eventId: "1", state: "post", kickoff: "2026-11-15T18:00Z", homeName: "Jets", awayName: "Bills", homeCode: "NYJ", awayCode: "BUF", slateEligible: true, originalCorrect: true, pickProbability: .75 },
@@ -24,4 +24,20 @@ test("live-first ordering does not mutate source rows", () => {
 test("stale and missing source times stay visibly stale", () => {
   assert.equal(sourceAgeLabel("2026-11-15T18:00Z", Date.parse("2026-11-15T18:03Z")).stale, true);
   assert.equal(sourceAgeLabel(null).stale, true);
+});
+
+test("a partial static score feed cannot replace the reviewed slate", () => {
+  assert.throws(() => validateMatchupRefresh(rows, rows.slice(0, 1)), /incomplete/);
+  assert.throws(() => validateMatchupRefresh(rows, []), /incomplete/);
+  assert.equal(rows.length, 3);
+});
+test("refreshed game identities must match, including duplicates and home/away", () => {
+  assert.throws(() => validateMatchupRefresh(rows, [rows[0], rows[0], rows[2]]), /identities/);
+  assert.throws(() => validateMatchupRefresh(rows, rows.map((r,i) => i === 2 ? {...r, homeCode:"BAL"} : r)), /identities/);
+  assert.throws(() => validateMatchupRefresh(rows, rows.map((r,i) => i === 2 ? {...r, eventId:"new"} : r)), /identities/);
+});
+test("complete reordered score updates are accepted without changing the old snapshot", () => {
+  const next = [...rows].reverse().map(row => ({...row, homeScore:24, awayScore:17}));
+  assert.doesNotThrow(() => validateMatchupRefresh(rows, next));
+  assert.equal(rows[0].homeScore, undefined);
 });

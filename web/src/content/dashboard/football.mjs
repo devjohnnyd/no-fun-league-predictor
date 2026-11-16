@@ -32,3 +32,15 @@ export function sourceAgeLabel(value, now = Date.now()) {
   const age = Math.max(0, difference);
   return { text: age < 60 ? "just now" : age < 3600 ? `${Math.floor(age / 60)}m ago` : age < 86400 ? `${Math.floor(age / 3600)}h ago` : `${Math.floor(age / 86400)}d ago`, stale: age > 120 };
 }
+export function validateMatchupRefresh(currentRows, nextRows) {
+  if (!Array.isArray(currentRows) || !currentRows.length || !Array.isArray(nextRows) || nextRows.length !== currentRows.length)
+    throw new Error("Score feed is incomplete. Showing the last complete slate.");
+  const expected = new Map(currentRows.map(row => [row.eventId, row]));
+  const ids = new Set();
+  for (const row of nextRows) {
+    const previous = expected.get(row.eventId);
+    if (!previous || ids.has(row.eventId) || row.homeCode !== previous.homeCode || row.awayCode !== previous.awayCode)
+      throw new Error("Score feed game identities changed. Showing the last complete slate.");
+    ids.add(row.eventId);
+  }
+}

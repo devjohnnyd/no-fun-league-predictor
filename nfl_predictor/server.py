@@ -10,6 +10,7 @@ import time
 from urllib.request import Request, urlopen
 
 from .dashboard import week_payload
+from .features import normalize_team
 from .sources import ESPN, games_from_scoreboard
 from .storage import read_json
 
@@ -39,6 +40,18 @@ class WeekFeed:
         self.season, self.week = season, week
         self.metadata, self.batches, self.dataset = metadata, batches, dataset
         self.card = card
+        self.strict_slate = dataset is not None
+        if dataset is not None:
+            self.expected_games = {str(g["espn"]): (g["home_team"], g["away_team"])
+                                   for g in dataset["schedule"] if g["season"] == season and g["week"] == week and g.get("espn")}
+        else:
+            prefix = f"{season}_{week:02d}_"
+            self.expected_games = {str(g["espn_id"]): (g["home"], g["away"])
+                                   for batch in batches for g in batch["forecast"]
+                                   if g.get("game_id", "").startswith(prefix) or
+                                   (batch.get("season"), batch.get("week")) == (season, week)}
+        if not self.expected_games:
+            raise ValueError("No schedule or saved forecast identities for this season/week")
         self.ttl, self.cached, self.updated = ttl, None, 0.
         self.lock = threading.Lock()
 
@@ -46,7 +59,17 @@ class WeekFeed:
         with self.lock:
             if self.cached is None or time.monotonic() - self.updated >= self.ttl:
                 manifest = fetch_week(self.season, self.week)
+                actual = {str(g["event_id"]): (normalize_team(g["home"]), normalize_team(g["away"])) for g in manifest["games"]}
+                missing = self.expected_games.keys() - actual.keys()
+                extra = actual.keys() - self.expected_games.keys()
+                if missing or (self.strict_slate and extra) or len(actual) != len(manifest["games"]):
+                    raise ValueError("Incomplete or conflicting weekly score feed; retaining the last complete slate")
+                if any(actual[event] != teams for event, teams in self.expected_games.items()):
+                    raise ValueError("Weekly score feed team identity changed")
                 result = week_payload(manifest, self.metadata, self.batches, self.dataset, self.card)
+                # Without a schedule, forecasts establish a minimum first slate;
+                # a successful response then pins every game, including Thursday.
+                self.expected_games, self.strict_slate = actual, True
                 self.cached, self.updated = result, time.monotonic()
             return self.cached
 
