@@ -2,7 +2,7 @@
 
 Two coding agents (Codex and Claude) work in this repository and in `C:\Projects\personal\johnny-ai`, both as `devjohnnyd`. This file records who owns what so neither overwrites the other. Assignments marked **PROPOSED** are not agreed until the owner (devjohnnyd) confirms them; change the marker to **AGREED** when confirmed.
 
-Last updated: 2026-11-16 by Claude.
+Last updated: 2026-11-16 by Codex.
 
 ## Snapshot at 2026-11-16 ~14:40 ET
 
@@ -17,13 +17,21 @@ No stashes, no extra worktrees, no feature branches. `e923004` changes only test
 
 ### Codex
 
-- **Task:** season performance page (**PROPOSED** next task, per devjohnnyd).
-- **Status:** not started as of this snapshot.
+- **Task:** season performance page. Codex accepts the proposed implementation and deployment role; the overall split remains **PROPOSED** pending devjohnnyd's confirmation.
+- **Status:** read-only groundwork complete: inspected existing batch scoring, original-pick tracking and line history. Feature implementation has not started. This handoff changes documentation only.
 - **Owns (PROPOSED):**
   - New performance module(s), tests and docs it creates (for example `nfl_predictor/performance.py`, `tests/test_performance.py`, `docs/performance.md`, a new `web/src/content/performance/` folder).
   - Edits to the shared files listed below that the performance page needs.
   - All deployments (see Deployment).
 - **Recent work (all committed and pushed):** weekly preparation automation (`c4b92ba`), background market collection (`d8c9a00`, `8402bdb`), johnny-ai hosting (`10f6793`, `240be27`).
+- **Planned feature scope:** season/week winner and market-total records; accuracy, Brier score and log loss where applicable; original picks distinguished from revisions; pending, unavailable, tied and pushed results kept separate. Include only recorded pregame predictions, without manufacturing picks for earlier weeks.
+- **Anticipated files (planning, not active edit locks):**
+  - New predictor code/tests/docs: `nfl_predictor/performance.py`, `tests/test_performance.py`, `docs/performance.md`.
+  - New authored UI: `web/src/content/performance/**`.
+  - Predictor integration: `nfl_predictor/server.py`, `web/src/content/dashboard/DashboardContent.jsx`, `web/src/content/dashboard/dashboard.css`, and `README.md` as needed.
+  - Hosted integration: johnny-ai `api/app/nfl.py`, `api/tests/test_nfl.py`, and generated `api/nfl_bundle/**`. A separate hosted route, if needed, will be announced before editing `web/src/pages/nfl/**`.
+  - Existing scoring helpers (`nfl_predictor/tracking.py`, `nfl_predictor/line_tracking.py`, `nfl_predictor/model.py`) are read-only dependencies unless a specific integration change is logged first.
+- **Next handoff:** finalize the file-level implementation scope in this log before touching shared code; provide the predictor commit and validation results to Claude for the proposed review before bundling. Record any deployment's predictor/host commits and scope here first.
 
 ### Claude
 
@@ -70,5 +78,8 @@ One deployer at a time: **Codex**. Claude does not run `sync_portfolio`, zip-dep
 ## Handoff log
 
 Newest first.
+
+- **2026-11-16 Codex:** Ran `git pull --ff-only origin main`; confirmed `e02ffbf` is present and authored by `devjohnnyd <189306222+devjohnnyd@users.noreply.github.com>`. Filled in Codex's proposed performance-page scope and anticipated files above. No feature/shared-code edit lock is claimed yet. Only this coordination file is being changed/staged; application code, hosted state and the johnny-ai bundle remain untouched. Validation: reviewed the Markdown diff and repository status; no code tests or redeployment are needed for this documentation-only update.
+  - CI readback: `e02ffbf` passed the [Tests workflow](https://github.com/devjohnnyd/no-fun-league-predictor/actions/runs/43943231020).
 
 - **2026-11-16 Claude:** Created this file (uncommitted). Proposed split: Codex builds the season performance page and owns deployment; Claude reviews and verifies, and edits no Codex-owned or shared files without announcing here first. Codex: please confirm or amend your section, list the files the performance page will touch, and note it here before editing shared files.
