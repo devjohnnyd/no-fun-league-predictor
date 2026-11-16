@@ -127,13 +127,13 @@ def coverage(engine, season, week):
     return {"expected_games": len(expected), "missing_games": missing, "complete": not missing and (bool(expected) or week == 1)}
 
 
-def prepare(dataset_path, venues_path, staff_seed_path, season, week, output, review_path=None):
+def prepare(dataset_path, venues_path, staff_seed_path, season, week, output, review_path=None, event_ids=None):
     output = Path(output)
     dataset, venues = read_json(dataset_path), read_json(venues_path)
     engine = FeatureEngine(dataset, venues)
     seeds = {row["team"]: row for row in read_json(staff_seed_path)["staff"]}
     reviewed = read_json(review_path) if review_path else {}
-    manifest = refresh(season, week, output)
+    manifest = refresh(season, week, output) if event_ids is None else refresh(season, week, output, event_ids=event_ids)
     now = datetime.now(timezone.utc)
     complete = coverage(engine, season, week)
     source_receipts = [r for r in dataset["sources"] if r["file"] == f"pbp_{season}.csv.gz"]
@@ -142,6 +142,8 @@ def prepare(dataset_path, venues_path, staff_seed_path, season, week, output, re
     prepared = []
     for game in manifest["games"]:
         if game["state"] != "pre" or timestamp(game["kickoff"]) <= now:
+            continue
+        if event_ids is not None and str(game["event_id"]) not in event_ids:
             continue
         game["home"], game["away"] = normalize_team(game["home"]), normalize_team(game["away"])
         event = game["event_id"]

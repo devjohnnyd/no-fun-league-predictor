@@ -93,10 +93,18 @@ class SeasonFeeds:
         for path in sorted((self.state_dir / "refreshes").glob("*/release/forecast.json")):
             self.batches.append(read_json(path))
             refreshed_dataset = path.parents[1] / "dataset.json.gz"
+            reference = path.parents[1] / "dataset-reference.json"
+            if reference.is_file():
+                pointer = read_json(reference)
+                refreshed_dataset = (self.state_dir / "refreshes" / pointer["path"]).resolve()
+                if not refreshed_dataset.is_relative_to((self.state_dir / "refreshes").resolve()) or hashlib.sha256(refreshed_dataset.read_bytes()).hexdigest() != pointer["sha256"]:
+                    raise ValueError("Saved forecast dataset reference failed integrity verification")
             if refreshed_dataset.is_file():
                 self.dataset = read_json(refreshed_dataset)
         self.feeds, self.lock = {}, threading.RLock()
         self.refresh = AnalysisRefresh(self, history_bundles, self.state_dir / "refreshes")
+        from .automation import WeeklyAutomation
+        self.automation = WeeklyAutomation(self, self.state_dir / "preparation.sqlite3")
 
     def feed(self, week):
         if not 1 <= week <= 18:
@@ -135,7 +143,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             return
         route = self.path.split("?", 1)[0]
         if route == "/api/refresh":
-            self.send_json(dict(self.feed.refresh.status))
+            self.send_json({**self.feed.refresh.status, "automation": self.feed.automation.status()})
             return
         if route.endswith("/live-week.json") or route == "/live-week.json":
             try:

@@ -119,7 +119,7 @@ def games_from_scoreboard(payload):
     return games
 
 
-def refresh(season, week, output):
+def refresh(season, week, output, event_ids=None):
     """Refresh all event scores and every pending game's injury/depth evidence.
 
     This intentionally leaves stats, staff and official inactives unverified.
@@ -144,6 +144,8 @@ def refresh(season, week, output):
         game["season"] = season
         game["slate_eligible"] = timestamp(game["kickoff"]).astimezone(eastern).weekday() in (6, 0)
         if game["state"] != "pre" or timestamp(game["kickoff"]) <= now:
+            continue
+        if event_ids is not None and str(game["event_id"]) not in event_ids:
             continue
         event_id = game["event_id"]
         venue_url = receipt["url"]

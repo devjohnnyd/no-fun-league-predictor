@@ -51,6 +51,6 @@ python -m nfl_predictor research --dataset data/snapshots/dataset-v4-2026-11-16.
 
 Offline evaluation uses committed derived inputs. Penalties are tuned on 2024, configurations selected on 2025 Brier score, and 2026 Weeks 1–9 labeled previously examined diagnostics. Preprocessing/fitting use only earlier weeks. Historical final injuries, recorded starters, observed weather and revised statistics are conditional timing assumptions, not proof of prospective performance.
 
-[Pregame workflow](docs/pregame-workflow.md) documents fresh acquisition → validation → model fitting → source review → feature rebuild → release. Required checks block stale/incomplete inputs or started games; final releases require verified official inactive lists for both teams. No background forecasting job is installed.
+[Pregame workflow](docs/pregame-workflow.md) documents fresh acquisition → validation → model fitting → source review → feature rebuild → release. Required checks block stale/incomplete inputs or started games; final releases require verified official inactive lists for both teams. [Hosted weekly preparation](docs/weekly-preparation.md) adds daily preparation, provider-delay retries, pregame checks and durable recovery on johnnyd.ai.
 
 Original forecasts/workbook remain under `archive/session-2026-11-10/` and `reports/2026-11-10/`. Bulk downloads, dependencies, caches and built output are excluded from Git. [Data attribution and licensing](DATA_LICENSES.md) applies to provider-derived data and logos; the project does not claim ownership of those assets.

@@ -179,3 +179,8 @@
   .nfl-detail-section dl>div { flex-direction:column; gap:4px; }
   .nfl-detail-section dd { text-align:left; }
 }
+.nfl-automation { margin:0 0 16px; border:1px solid var(--border); border-radius:12px; padding:12px 16px; font-size:13px; overflow-wrap:anywhere; }
+.nfl-automation summary { cursor:pointer; min-height:24px; font-weight:600; }
+.nfl-automation p { margin:8px 0 0; line-height:1.5; }
+.nfl-detail-section dd small { display:block; font-size:11px; margin-top:3px; }
+.nfl-input-stale { color:var(--text-secondary); }

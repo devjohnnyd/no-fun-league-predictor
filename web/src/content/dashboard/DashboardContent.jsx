@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, DataComponent, Dialog, Dropdown, Icon, SegmentedControl, SortableItem, SortableRegion, useDataApp } from "../../data-app-public.jsx";
-import { filterGames, gameSummary, kickoffLabel, orderedGames, predictionLabel, sourceAgeLabel, totalRecord } from "./football.mjs";
+import { filterGames, gameSummary, inputFreshness, kickoffLabel, orderedGames, predictionLabel, sourceAgeLabel, totalRecord } from "./football.mjs";
 import { useAnalysisRefresh } from "./use-analysis-refresh.js";
 
 function MarketTotal({ total, state }) {
@@ -42,7 +42,23 @@ function GameCard({ row, onDetails }) {
   </article>;
 }
 
-function Detail({ row, onClose }) {
+function InputStatus({ row, latest, now }) {
+  const sources = latest?.sources || row.forecastSources || {};
+  const historical = row.state === "post" || row.state === "in";
+  const asOf = historical ? Date.parse(row.forecastIssuedAt) : now;
+  return <section className="nfl-detail-section" data-reviewed-rows><h3>{historical ? "Saved input receipts" : "Pregame input freshness"}</h3>
+    {latest?.check && <p>{latest.check.stage === "final" ? "Final" : "Preliminary"} check: {latest.check.ready ? "Passed" : "Blocked"} · {new Date(latest.check.checked_at).toLocaleString("en-US", {timeZone:"America/New_York"})} ET</p>}
+    <dl>{Object.entries({stats:"Team & QB statistics", injuries:"Injury reports", depth:"Projected quarterbacks", weather:"Kickoff weather", staff:"Coaching staff", inactives:"Official inactive lists"}).map(([kind,label]) => {
+      const source = sources[kind];
+      const age = inputFreshness(source, kind, asOf, latest?.check?.stage === "final");
+      return <div key={kind}><dt>{label}</dt><dd className={age.stale ? "nfl-input-stale" : ""}>{source?.url?.startsWith("https://") ? <a href={source.url} target="_blank" rel="noreferrer">{age.label}</a> : age.label}{source?.retrieved_at && <small>{new Date(source.retrieved_at).toLocaleString("en-US", {timeZone:"America/New_York",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})} ET</small>}</dd></div>;
+    })}</dl>
+    {latest?.check?.reasons?.length > 0 && <ul>{latest.check.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
+    <p>{historical ? "Ages are measured when the saved forecast was issued." : "Fresh reports support preliminary picks. Final picks also require verified official inactive lists for both teams; missing evidence blocks release."}</p>
+  </section>;
+}
+
+function Detail({ row, onClose, latest, now }) {
   if (!row) return null;
   const clockText = value => value ? value.slice(11, 16).replace(/^(\d{2}):(\d{2})$/, (_, h, m) => `${Number(h) % 12 || 12}:${m} ${Number(h) >= 12 ? "PM" : "AM"}`) : "Unavailable";
   return <div className="nfl-detail-body">
@@ -50,6 +66,7 @@ function Detail({ row, onClose }) {
     <p className="nfl-detail-kickoff">{kickoffLabel(row.kickoff)} · {row.venue || "Venue unavailable"}</p>
     {row.pick && <section className="nfl-detail-section"><h3>Saved prediction</h3><div className="nfl-detail-pick"><strong>{row.pick} · {Math.round(row.pickProbability * 100)}%</strong><span>{predictionLabel(row)}</span></div><p>{row.forecastIssuedAt?.length === 10 ? `Issued ${row.forecastIssuedAt}` : `Issued ${new Date(row.forecastIssuedAt).toLocaleString("en-US", { timeZone: "America/New_York" })} ET`}</p><p>Estimated win probability, conditional on a decisive result.</p>{row.originalHomeProbability !== row.homeProbability && <p>Original pick: {row.originalPick} at {Math.round(Math.max(row.originalHomeProbability, 1 - row.originalHomeProbability) * 100)}%.</p>}</section>}
     <section className="nfl-detail-section"><h3>Quarterbacks in the saved forecast</h3><dl><div><dt>{row.awayCode}</dt><dd>{row.awayQb || "No saved projection"}</dd></div><div><dt>{row.homeCode}</dt><dd>{row.homeQb || "No saved projection"}</dd></div></dl></section>
+    <InputStatus row={row} latest={latest} now={now} />
     {row.totalProjection && <section className="nfl-detail-section" data-reviewed-rows><h3>Total points projection</h3><p><strong>{row.totalProjection.projected_total.toFixed(1)} combined points</strong> · Experimental</p><p>80% predictive range: {row.totalProjection.interval_80[0]}–{row.totalProjection.interval_80[1]} points. A separate scoring model; an over/under lean also requires the exact printed line.</p></section>}
     <section className="nfl-detail-section"><h3>Kickoff on each team’s home clock</h3><dl><div><dt>{row.awayCode}</dt><dd>{clockText(row.awayClockKickoff)}{row.awayTimeZoneShift ? ` · ${Math.abs(row.awayTimeZoneShift)}h ${row.awayTimeZoneShift > 0 ? "east" : "west"}` : row.awayTimeZoneShift === 0 ? " · Same time zone" : ""}</dd></div><div><dt>{row.homeCode}</dt><dd>{clockText(row.homeClockKickoff)}{row.homeTimeZoneShift ? ` · ${Math.abs(row.homeTimeZoneShift)}h ${row.homeTimeZoneShift > 0 ? "east" : "west"}` : row.homeTimeZoneShift === 0 ? " · Same time zone" : ""}</dd></div></dl><p>Experimental travel context. Arrival times and actual acclimation are unknown.</p></section>
     {row.shadowComparisons?.length > 0 && <section className="nfl-detail-section" data-reviewed-rows><h3>Model comparison</h3><p>Estimated chance of a {row.homeCode} win. Research models are tracked separately from the saved primary pick.</p><dl>{row.shadowComparisons.filter(item => ["efficiency_qb", "body_clock", "combined"].includes(item.model)).map(item => <div key={item.model}><dt>{{efficiency_qb: "Efficiency + QB", body_clock: "With body clock", combined: "All new metrics"}[item.model]}</dt><dd>{Math.round(item.homeProbability * 100)}% · Experimental</dd></div>)}{row.eloHomeProbability != null && <div><dt>Independent Elo</dt><dd>{Math.round(row.eloHomeProbability * 100)}%</dd></div>}{row.marketHomeProbability != null && <div><dt>Market benchmark</dt><dd>{Math.round(row.marketHomeProbability * 100)}% · Margin removed</dd></div>}</dl></section>}
@@ -109,6 +126,7 @@ export function DashboardContent() {
   return <div className="nfl-dashboard">
     <div className="nfl-week-toolbar"><div className="nfl-week-label"><span className="nfl-season">{snapshot.period?.season} NFL season</span><label className="nfl-week-select"><span className="nfl-visually-hidden">NFL week</span><select aria-label="NFL week" value={snapshot.period?.week} onChange={event => {const url = new URL(window.location.href); url.searchParams.set("week", event.target.value); window.location.assign(url);}}>{Object.keys(snapshot.seasonSchedule || {[snapshot.period?.week]:[]}).map(week => <option key={week} value={week}>Week {week}</option>)}</select></label></div><div className="nfl-feed-controls"><span className={`nfl-feed-label ${stale ? "is-stale" : ""}`} role="status"><span className="nfl-feed-dot" />{stale ? "Last update" : snapshot.nflFeed?.status === "connected" ? "Scores & lines" : "Snapshot"} {age.text}</span><Button className="nfl-refresh-button" disabled={busy} onClick={refreshAnalysis} aria-label="Refresh data and analysis"><Icon name="refresh" />{busy ? "Refreshing…" : "Refresh data & analysis"}</Button></div></div>
     {job.message && <div className={`nfl-job-status is-${job.state}`} role="status">{job.week ? `Week ${job.week}: ` : ""}{job.message}</div>}
+    {job.automation && <details className="nfl-automation"><summary>Automatic preparation · {job.automation.enabled ? "On" : "Off"}</summary><p>{job.automation.cadence}</p>{job.automation.nextCheckAt && <p>Next due: Week {job.automation.nextWeek} · {new Date(job.automation.nextCheckAt).toLocaleString("en-US", {timeZone:"America/New_York"})} ET</p>}<p>Incomplete statistics retry hourly, up to six full preparations per UTC day. Blocked pregame checks retry every ten minutes until their window closes.</p>{job.automation.error && <p role="status">{job.automation.error}</p>}{job.automation.recent?.[0]?.message && <p>Last scheduled attempt: Week {job.automation.recent[0].week} · {job.automation.recent[0].message}</p>}</details>}
     {snapshot.nflFeed?.error && <div className="nfl-feed-warning" role="status">Live updates are temporarily unavailable. Scores below retain their last successful update.</div>}
     <nav className="nfl-mobile-nav" aria-label="Dashboard sections"><a href="#nfl-matchups">Games · {all.length}</a>{brochure.length > 0 && visible("weekly-totals") && <a href="#nfl-weekly-totals">Printed card · {brochure.length}</a>}</nav>
     <p className="nfl-tracking-scope" data-reviewed-rows>All {all.length} games · {all.length} market totals tracked · Includes Thursday<br />Market total model record: {marketRecord.picks ? `${marketRecord.wins}–${marketRecord.losses} from ${marketRecord.picks} saved picks` : "No saved picks yet"} · Experimental</p>
@@ -122,6 +140,6 @@ export function DashboardContent() {
       </DataComponent></SortableItem>
     </SortableRegion>
     <footer className="nfl-footer"><span>Team logos: NFL.com · Scores: ESPN</span><span>Preliminary picks require a final lineup check.</span></footer>
-    <Dialog className="nfl-game-dialog" open={Boolean(selectedRow)} onClose={() => setSelected(null)} title={selectedRow ? `${selectedRow.awayName} at ${selectedRow.homeName}` : "Game details"}><Detail row={selectedRow} onClose={() => setSelected(null)} /></Dialog>
+    <Dialog className="nfl-game-dialog" open={Boolean(selectedRow)} onClose={() => setSelected(null)} title={selectedRow ? `${selectedRow.awayName} at ${selectedRow.homeName}` : "Game details"}><Detail row={selectedRow} latest={selectedRow?.state === "pre" && job.week === snapshot.period?.week ? job.inputs?.find(input => input.eventId === selectedRow?.eventId) : null} now={tick} onClose={() => setSelected(null)} /></Dialog>
   </div>;
 }

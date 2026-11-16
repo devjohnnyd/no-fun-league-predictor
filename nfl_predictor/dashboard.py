@@ -54,6 +54,7 @@ def week_payload(manifest, metadata, batches, dataset=None, card=None):
             "pickProbability": max(prediction["home_probability"], 1 - prediction["home_probability"]) if prediction else None,
             "predictionStage": prediction.get("stage", "original") if prediction else None,
             "forecastIssuedAt": prediction["issued_at"] if prediction else None,
+            "forecastSources": prediction.get("sources", {}) if prediction else {},
             "modelName": prediction.get("model", "v2_original") if prediction else None,
             "shadowComparisons": [{"model": r["model"], "homeProbability": r["home_probability"]}
                                   for r in prediction.get("shadow_forecasts", [])] if prediction else [],

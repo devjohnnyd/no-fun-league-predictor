@@ -1,6 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { filterGames, gameSummary, orderedGames, sourceAgeLabel, totalRecord, validateMatchupRefresh } from "../web/src/content/dashboard/football.mjs";
+import { filterGames, gameSummary, inputFreshness, orderedGames, sourceAgeLabel, totalRecord, validateMatchupRefresh } from "../web/src/content/dashboard/football.mjs";
+
+test("pregame freshness distinguishes missing, stale and unofficial evidence", () => {
+  const now = Date.parse("2026-11-19T22:00:00Z");
+  const source = {status:"ok",retrieved_at:"2026-11-19T19:00:00Z"};
+  assert.equal(inputFreshness(null,"weather",now).stale,true);
+  assert.equal(inputFreshness(source,"injuries",now).stale,false);
+  assert.equal(inputFreshness(source,"injuries",now,true).stale,true);
+  assert.equal(inputFreshness(source,"inactives",now).label,"Official lists unverified");
+  assert.equal(inputFreshness({...source,retrieved_at:"2026-11-20T00:00:00Z"},"weather",now).label,"Time unverified");
+});
 
 const rows = [
   { eventId: "1", state: "post", kickoff: "2026-11-15T18:00Z", homeName: "Jets", awayName: "Bills", homeCode: "NYJ", awayCode: "BUF", slateEligible: true, originalCorrect: true, pickProbability: .75 },

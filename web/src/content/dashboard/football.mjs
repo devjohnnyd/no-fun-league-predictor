@@ -42,6 +42,14 @@ export function sourceAgeLabel(value, now = Date.now()) {
   const age = Math.max(0, difference);
   return { text: age < 60 ? "just now" : age < 3600 ? `${Math.floor(age / 60)}m ago` : age < 86400 ? `${Math.floor(age / 3600)}h ago` : `${Math.floor(age / 86400)}d ago`, stale: age > 120 };
 }
+export function inputFreshness(source, kind, now = Date.now(), final = false) {
+  const limits = {stats:48, injuries:final ? 2 : 24, depth:final ? 2 : 24, weather:final ? 6 : 12, staff:168, inactives:2};
+  if (!source || source.status !== "ok") return {label:"Unavailable", stale:true};
+  if (kind === "inactives" && source.official !== true) return {label:"Official lists unverified", stale:true};
+  const age = (now - Date.parse(source.retrieved_at)) / 3600000;
+  if (!Number.isFinite(age) || age < 0) return {label:"Time unverified", stale:true};
+  return {label:sourceAgeLabel(source.retrieved_at, now).text, stale:age > limits[kind]};
+}
 export function validateMatchupRefresh(currentRows, nextRows) {
   if (!Array.isArray(currentRows) || !currentRows.length || !Array.isArray(nextRows) || nextRows.length !== currentRows.length)
     throw new Error("Score feed is incomplete. Showing the last complete slate.");
