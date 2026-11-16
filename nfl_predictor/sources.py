@@ -109,6 +109,9 @@ def games_from_scoreboard(payload):
                       "clock": competition.get("status", event.get("status", {})).get("displayClock"),
                       "period": competition.get("status", event.get("status", {})).get("period"),
                       "status_detail": status.get("shortDetail") or status.get("detail"),
+                      "total_quotes": [{"line": item.get("overUnder"), "book": item.get("provider", {}).get("name"),
+                                        "book_id": str(item.get("provider", {}).get("id") or item.get("provider", {}).get("name") or "unknown")}
+                                       for item in competition.get("odds", [])],
                       "venue": competition.get("venue", {}), "sources": {}})
     ids = [g["event_id"] for g in games]
     if len(ids) != len(set(ids)):
@@ -117,7 +120,7 @@ def games_from_scoreboard(payload):
 
 
 def refresh(season, week, output):
-    """Refresh all event scores and pending Sunday/Monday injury/depth evidence.
+    """Refresh all event scores and every pending game's injury/depth evidence.
 
     This intentionally leaves stats, staff and official inactives unverified.
     Fresh downloads alone cannot turn the November 10 feature matrix current.
@@ -140,7 +143,7 @@ def refresh(season, week, output):
         game["week"] = week
         game["season"] = season
         game["slate_eligible"] = timestamp(game["kickoff"]).astimezone(eastern).weekday() in (6, 0)
-        if not game["slate_eligible"] or game["state"] != "pre" or timestamp(game["kickoff"]) <= now:
+        if game["state"] != "pre" or timestamp(game["kickoff"]) <= now:
             continue
         event_id = game["event_id"]
         venue_url = receipt["url"]

@@ -1,6 +1,6 @@
 # No Fun League Predictor
 
-An auditable NFL tracker and probability model owned by [devjohnnyd](https://github.com/devjohnnyd). Track every regular-season result, forecast all Sunday games plus Monday Night Football, and view the entire weekly slate in a responsive dashboard.
+An auditable NFL tracker and probability model owned by [devjohnnyd](https://github.com/devjohnnyd). Track every regular-season game and its market over/under, including Thursday, in a responsive weekly dashboard.
 
 ## Current release — November 16, 2026
 
@@ -27,7 +27,7 @@ python scripts/configure_dashboard.py --snapshot data/snapshots/dashboard-week10
 python -m nfl_predictor serve --season 2026 --week 10 --metadata data/snapshots/venues-v4-2026-11-15.json --dataset data/snapshots/dataset-v4-2026-11-16.json.gz --forecast archive/session-2026-11-10/enhanced/model.json --forecast reports/2026-11-16-complete/monday-with-totals/forecast.json
 ```
 
-Open **http://127.0.0.1:4173/**. The server polls public scores with a 30-second shared cache; visible browsers request updates every minute. Failed updates preserve the last successful data and timestamp. Hosting the Python server is optional: a static site can consume the same JSON contract from a separately hosted refresh process. See [hosting and portable packaging](docs/hosting.md).
+Open **http://127.0.0.1:4173/**. Choose a week to inspect its complete slate. **Refresh data & analysis** updates scores and lines and starts a serialized pregame rebuild; add `--history-bundle data/raw/v4-2026-11-15` to the serve command to enable current-season statistical rebuilding with the existing historical bundle. See [line movement, original-pick preservation and printed cards](docs/weekly-cards.md). The local line ledger lives in `work/tracker/lines.sqlite3`; back it up to retain prospective history. Failed updates preserve the last successful data and timestamp. Static hosting requires a separately hosted feed/analysis service; it cannot run Python or update the SQLite ledger by itself. See [hosting and portable packaging](docs/hosting.md).
 
 ## Latest scores
 

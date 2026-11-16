@@ -26,10 +26,11 @@ Every game uses prior weeks only, including preprocessing and calibration. New f
 ```powershell
 python -m nfl_predictor prepare --dataset data/snapshots/new-week11.json.gz --venues data/snapshots/venues-v4-2026-11-15.json --season 2026 --week 11 --output data/raw/week11-pregame
 python -m nfl_predictor check --manifest data/raw/week11-pregame/reviewed-manifest.json
-python -m nfl_predictor forecast --dataset data/snapshots/new-week11.json.gz --venues data/snapshots/venues-v4-2026-11-15.json --research reports/new-week11-research/research.json --prepared data/raw/week11-pregame/prepared.json --output reports/week11-preliminary
+python -m nfl_predictor research-totals --dataset data/snapshots/new-week11.json.gz --venues data/snapshots/venues-v4-2026-11-15.json --season 2026 --week 11 --output reports/new-week11-totals
+python -m nfl_predictor forecast --dataset data/snapshots/new-week11.json.gz --venues data/snapshots/venues-v4-2026-11-15.json --research reports/new-week11-research/research.json --prepared data/raw/week11-pregame/prepared.json --totals-model reports/new-week11-totals/totals-model.json --output reports/week11-preliminary
 ```
 
-Preparation refreshes eligible pending Sunday/Monday games, depth charts, injuries and kickoff weather; resolves projected QB/backup and kicker; verifies HC/OC/DC from official team pages; and builds the complete feature vector. Review projected starters, unmapped players, injury replacements and roof uncertainty. An ESPN depth chart is a projection, not a verified official inactive list. Unknown tracking/replacement measurements remain missing with training-only imputation and explicit missingness indicators.
+Preparation refreshes every pending game, including Thursday and other non-Sunday games, with depth charts, injuries and kickoff weather; resolves projected QB/backup and kicker; verifies HC/OC/DC from official team pages; and builds the complete feature vector. Review projected starters, unmapped players, injury replacements and roof uncertainty. An ESPN depth chart is a projection, not a verified official inactive list. Unknown tracking/replacement measurements remain missing with training-only imputation and explicit missingness indicators. New CLI forecast releases require a separate total-points model so every released game includes its scoring projection.
 
 Preliminary maximum source ages: statistics 48 hours, injury/depth 24 hours, weather 12 hours, staff seven days. Feature preparation must be no more than 30 minutes old. `forecast` rechecks live game status and kickoff, rebuilds the vector, and refuses target-week model leakage, changed inputs or a started game. These thresholds are operational safeguards, not learned effects.
 

@@ -65,7 +65,8 @@ def main():
     fc.add_argument("--output", type=Path, required=True)
     fc.add_argument("--final", action="store_true")
     fc.add_argument("--market-quotes", type=Path, help="Optional timestamped paired American-odds CSV; used only as a benchmark")
-    fc.add_argument("--totals-model", type=Path, help="Optional separately evaluated total-points model")
+    fc.add_argument("--totals-model", type=Path, required=True, help="Separately evaluated total-points model for every game")
+    fc.add_argument("--card", type=Path, help="Weekly printed totals; defaults to the matching data/cards file")
     ex = sub.add_parser("export-week", help="Export reviewed matchup rows for the dashboard")
     ex.add_argument("--manifest", type=Path, required=True)
     ex.add_argument("--metadata", type=Path, required=True)
@@ -84,9 +85,12 @@ def main():
     sv.add_argument("--host", default="127.0.0.1")
     sv.add_argument("--port", type=int, default=4173)
     sv.add_argument("--card", type=Path)
+    sv.add_argument("--state-dir", type=Path, default=Path("work/tracker"), help="Persistent local line history and immutable refresh runs")
+    sv.add_argument("--history-bundle", type=Path, action="append", default=[], help="Existing historical raw bundle for full statistical refresh")
+    sv.add_argument("--staff-seed", type=Path, default=Path("archive/session-2026-11-10/enhanced/context.json"))
     ev = sub.add_parser("evaluate", help="Tune 2024, select 2025, diagnose 2026")
     ev.add_argument("--output", type=Path, required=True)
-    rf = sub.add_parser("refresh", help="Fetch current scores and pending Sun/Mon context")
+    rf = sub.add_parser("refresh", help="Fetch current scores and pregame context for every day of the week")
     rf.add_argument("--season", type=int, required=True)
     rf.add_argument("--week", type=int, required=True)
     rf.add_argument("--output", type=Path, required=True)
@@ -136,7 +140,10 @@ def main():
         print(json.dumps({"selected": result["selected"], "diagnostic": result["diagnostic"], "baseline": result["mean_baseline_diagnostic"]}, indent=2))
     elif args.command == "forecast":
         from .forecast import issue
-        result = issue(args.dataset, args.venues, args.research, args.prepared, args.output, args.final, market_path=args.market_quotes, totals_model_path=args.totals_model)
+        prepared = read(args.prepared)
+        card_path = args.card or args.root / f"data/cards/{prepared['season']}-week{prepared['week']}.json"
+        result = issue(args.dataset, args.venues, args.research, args.prepared, args.output, args.final, market_path=args.market_quotes, totals_model_path=args.totals_model,
+                       card_path=card_path if args.card or card_path.is_file() else None)
         print(json.dumps({"released": len(result["forecast"]), "blocked": result["blocked"]}, indent=2))
         if not result["forecast"]:
             raise SystemExit(1)
@@ -151,7 +158,8 @@ def main():
     elif args.command == "serve":
         from .server import serve
         card_path = args.card or args.root / f"data/cards/{args.season}-week{args.week}.json"
-        serve(args.web, args.metadata, args.forecast, args.dataset, args.season, args.week, args.host, args.port, args.logos, card_path if card_path.is_file() else None)
+        serve(args.web, args.metadata, args.forecast, args.dataset, args.season, args.week, args.host, args.port, args.logos, card_path if card_path.is_file() else None,
+              args.state_dir, args.history_bundle, args.staff_seed)
     elif args.command == "evaluate":
         result = evaluate(args.root, args.output)
         print(json.dumps({"selected": result["selected"], "diagnostics": result["diagnostics_2026"]}, indent=2))
@@ -179,8 +187,7 @@ def main():
         print(json.dumps({key: value for key, value in result.items() if key != "games"}, indent=2))
     else:
         manifest = read(args.manifest)
-        games = [g for g in manifest["games"] if g.get("slate_eligible", True)
-                 and (str(g["event_id"]) == args.event if args.event else g.get("state") == "pre")]
+        games = [g for g in manifest["games"] if (str(g["event_id"]) == args.event if args.event else g.get("state") == "pre")]
         results = [check_pregame(g, final=args.final) for g in games]
         if args.output:
             save_new(args.output, results)

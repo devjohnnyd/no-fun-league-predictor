@@ -47,11 +47,31 @@ class ReleaseTests(unittest.TestCase):
             mock.start()
             self.addCleanup(mock.stop)
 
-    def release(self, final=False):
+    def release(self, final=False, **kwargs):
         write_new(self.root / "prepared.json", self.prepared)
         write_new(self.root / "research.json", self.report)
         return issue(self.dataset, self.venues, self.root / "research.json", self.root / "prepared.json",
-                     self.root / "output", final=final, now=self.now, verify_live=False)
+                     self.root / "output", final=final, now=self.now, verify_live=False, **kwargs)
+
+    def test_weekly_total_games_require_a_totals_model(self):
+        card_path = self.root / "card.json"
+        write_new(card_path, {"season": 2026, "week": 10, "games": [
+            {"event_id": str(i), "home": "BAL", "away": "LAC", "line": 42.5} for i in (1, 2, 3)]})
+        with self.assertRaisesRegex(ValueError, "require --totals-model"):
+            self.release(card_path=card_path)
+
+    def test_release_freezes_exact_weekly_line_and_analysis(self):
+        card_path, totals_path = self.root / "card.json", self.root / "totals.json"
+        write_new(card_path, {"season": 2026, "week": 10, "received_at": "2026-11-16T11:00:00Z", "source": "User supplied card", "games": [
+            {"event_id": str(i), "home": "BAL", "away": "LAC", "line": 42.5} for i in (1, 2, 3)]})
+        write_new(totals_path, {"source_sha256": self.report["source_sha256"], "training_cutoff": {"season": 2026, "before_week": 10}})
+        with patch("nfl_predictor.totals.total_features", return_value={}), patch("nfl_predictor.totals.projection", return_value={"total_samples": [40, 41, 42], "projected_total": 41., "interval_80": [40, 42]}):
+            result = self.release(card_path=card_path, totals_model_path=totals_path)
+        choice = result["forecast"][0]["total_pick"]
+        self.assertEqual(choice["line"], 42.5)
+        self.assertEqual(choice["lean"], "Under")
+        self.assertEqual(choice["issued_at"], result["issued_at"])
+        self.assertEqual(result["card_sha256"], sha256(card_path))
 
     def test_fresh_pregame_release_preserves_shadow_and_exact_time(self):
         result = self.release()

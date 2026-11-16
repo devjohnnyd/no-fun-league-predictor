@@ -18,6 +18,16 @@ export function gameSummary(rows) {
     wins: decided.filter(row => row.originalCorrect === true).length,
     losses: decided.filter(row => row.originalCorrect === false).length };
 }
+export function totalRecord(rows, owner = "model") {
+  const chosen = rows.filter(row => owner === "user" ? Boolean(row.userPick) : row.analysis && row.analysis.lean !== "Even");
+  const correct = owner === "user" ? "userCorrect" : "correct";
+  return { selections: chosen.length, wins: chosen.filter(row => row[correct] === true).length,
+    losses: chosen.filter(row => row[correct] === false).length,
+    pushes: chosen.filter(row => row.actualOutcome === "Push").length,
+    pending: chosen.filter(row => row.actualOutcome == null).length,
+    unavailable: rows.filter(row => owner === "user" ? !row.userPick : !row.analysis).length,
+    abstentions: owner === "model" ? rows.filter(row => row.analysis?.lean === "Even").length : 0 };
+}
 export function kickoffLabel(value) {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "Kickoff unavailable";

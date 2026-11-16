@@ -158,6 +158,30 @@ def research_totals(dataset_path, venues_path, season, week, output):
     return result
 
 
+def total_forecasts(batches, latest=False):
+    """Select original (or latest) total projections independently of winner revisions."""
+    selected = {}
+    for batch in batches:
+        issued = batch.get("issued_at")
+        if not issued or len(issued) <= 10:
+            continue
+        for row in batch["forecast"]:
+            event = str(row["espn_id"])
+            if row.get("total_projection") and (event not in selected or (timestamp(issued) > timestamp(selected[event]["issued_at"]) if latest else timestamp(issued) < timestamp(selected[event]["issued_at"]))):
+                selected[event] = {**row, "issued_at": issued}
+    return selected
+
+
+def saved_total_pick(card, selection, forecast, issued_at):
+    """Freeze an exact-line choice at release, without using game outcomes."""
+    if not card.get("received_at") or not timestamp(card["received_at"]) <= timestamp(issued_at) < timestamp(forecast["kickoff"]):
+        raise ValueError("A total pick requires the printed line before release and release before kickoff")
+    if (selection["home"], selection["away"]) != (forecast["home"], forecast["away"]):
+        raise ValueError("Total pick team identity mismatch")
+    return {**line_analysis(forecast["total_projection"], selection["line"]),
+            "issued_at": issued_at, "line_received_at": card["received_at"], "source": card.get("source")}
+
+
 def card_rows(card, games, forecasts):
     """Score printed lines; never manufacture predictions for completed games."""
     if not card:
@@ -174,7 +198,10 @@ def card_rows(card, games, forecasts):
         game = by_id.get(event)
         if not game or (selection["home"], selection["away"]) != (game["home"], game["away"]):
             raise ValueError("Brochure game identity does not match this week")
-        total = game["home_score"] + game["away_score"] if game.get("completed") else None
+        completed = game.get("completed") is True
+        total = game["home_score"] + game["away_score"] if completed else None
+        live_scores = [game.get(side + "_live_score") for side in ("home", "away")]
+        live_total = sum(live_scores) if game.get("state") == "in" and all(value is not None for value in live_scores) else None
         actual = "Over" if total is not None and total > line else "Under" if total is not None and total < line else "Push" if total is not None else None
         forecast = forecasts.get(event, {})
         projection_row = forecast.get("total_projection")
@@ -185,8 +212,27 @@ def card_rows(card, games, forecasts):
         issued_at = forecast.get("issued_at")
         timely_forecast = bool(issued_at and len(issued_at) > 10 and timestamp(issued_at) < timestamp(game["kickoff"]))
         analysis = line_analysis(projection_row, line) if projection_row and timely_line and timely_forecast else None
-        output.append({"eventId": event, "homeCode": game["home"], "awayCode": game["away"], "line": line,
+        saved = forecast.get("total_pick")
+        if saved:
+            if float(saved["line"]) != line or saved["issued_at"] != issued_at or saved["line_received_at"] != card.get("received_at"):
+                raise ValueError("Saved total pick differs from the recorded printed line or timestamps")
+            if not analysis or any(saved[key] != analysis[key] for key in ("lean", "over_probability", "under_probability", "push_probability")):
+                raise ValueError("Saved total pick differs from its predictive distribution")
+        user = selection.get("user_pick")
+        if user and (user.get("pick") not in {"Over", "Under"} or not user.get("reported_at") or not user.get("source")):
+            raise ValueError("User total pick requires Over/Under, report timestamp and source")
+        if user:
+            timestamp(user["reported_at"])
+        output.append({"selectionId": f"{card['season']}:{card['week']}:{event}:total:{line:g}", "kind": "total",
+                       "season": card["season"], "week": card["week"], "kickoff": game["kickoff"],
+                       "eventId": event, "homeCode": game["home"], "awayCode": game["away"], "line": line,
+                       "liveTotal": live_total, "statusDetail": game.get("status_detail"),
                        "actualTotal": total, "actualOutcome": actual, "state": game["state"],
+                       "userPick": user["pick"] if user else None,
+                       "userReportedAt": user["reported_at"] if user else None,
+                       "userPickSource": user["source"] if user else None,
+                       "userReportedAfterKickoff": timestamp(user["reported_at"]) >= timestamp(game["kickoff"]) if user else None,
+                       "userCorrect": user["pick"] == actual if user and actual in {"Over", "Under"} else None,
                        "projection": projection_row, "analysis": analysis,
                        "predictionStatus": "No directional lean (50/50)" if analysis and analysis["lean"] == "Even" else "Experimental pregame model" if analysis else "No pregame forecast recorded",
                        "source": card.get("source"), "lineReceivedAt": card.get("received_at"),
@@ -199,21 +245,26 @@ def score_card(card, batches, results):
     from .model import scores
     if (card["season"], card["week"]) != (results["season"], results["week"]):
         raise ValueError("Brochure and results season/week differ")
-    forecasts = {}
-    for batch in batches:
-        for forecast in batch["forecast"]:
-            event = str(forecast["espn_id"])
-            if forecast.get("total_projection") and batch.get("issued_at"):
-                candidate = {**forecast, "issued_at": batch["issued_at"]}
-                if event not in forecasts or timestamp(candidate["issued_at"]) > timestamp(forecasts[event]["issued_at"]):
-                    forecasts[event] = candidate
+    forecasts = total_forecasts(batches)
     rows = card_rows(card, results["games"], forecasts)
     decided = [row for row in rows if row["correct"] is not None]
     probabilities = [row["analysis"]["over_probability"] / (row["analysis"]["over_probability"] + row["analysis"]["under_probability"]) for row in decided]
     return {"season": card["season"], "week": card["week"], "results_retrieved_at": results["retrieved_at"],
             "games": rows, "metrics": scores([int(row["actualOutcome"] == "Over") for row in decided], probabilities),
+            "user_record": user_record(rows),
             "pushes": sum(row["actualOutcome"] == "Push" for row in rows),
             "abstentions": sum(bool(row["analysis"]) and row["analysis"]["lean"] == "Even" for row in rows),
             "unavailable_predictions": sum(row["analysis"] is None for row in rows),
             "pending": sum(row["actualOutcome"] is None for row in rows),
             "policy": "Only timestamped pregame directional picks and lines count. Metrics condition on no push; 50/50 abstentions, pushes and missing picks stay separate."}
+
+
+def user_record(rows):
+    selected = [row for row in rows if row["userPick"]]
+    wins = sum(row["userCorrect"] is True for row in selected)
+    losses = sum(row["userCorrect"] is False for row in selected)
+    return {"selections": len(selected), "wins": wins, "losses": losses,
+            "accuracy": wins / (wins + losses) if wins + losses else None,
+            "pushes": sum(row["actualOutcome"] == "Push" for row in selected),
+            "pending": sum(row["actualOutcome"] is None for row in selected),
+            "reported_after_kickoff": sum(row["userReportedAfterKickoff"] for row in selected)}

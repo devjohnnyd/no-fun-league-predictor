@@ -4,8 +4,8 @@
   "received_at": null,
   "source": "User-provided photo of William Hill NFL Progressive Card, Week 10, November 15-16 2026; printed totals transcribed visually. Exact photo receipt minute unavailable; recorded after these Sunday games finished.",
   "games": [
-    {"event_id": "401873060", "away": "MIN", "home": "GB", "line": 42.5},
-    {"event_id": "401873062", "away": "SEA", "home": "LV", "line": 43.5},
-    {"event_id": "401873064", "away": "PIT", "home": "CIN", "line": 47.5}
+    {"event_id": "401873060", "away": "MIN", "home": "GB", "line": 42.5, "user_pick": {"pick": "Over", "reported_at": "2026-11-16T16:26:25.6481002Z", "source": "User reported choosing Over on all three Week 10 games. Original placement time unknown; reported after the games finished."}},
+    {"event_id": "401873062", "away": "SEA", "home": "LV", "line": 43.5, "user_pick": {"pick": "Over", "reported_at": "2026-11-16T16:26:25.6481002Z", "source": "User reported choosing Over on all three Week 10 games. Original placement time unknown; reported after the games finished."}},
+    {"event_id": "401873064", "away": "PIT", "home": "CIN", "line": 47.5, "user_pick": {"pick": "Over", "reported_at": "2026-11-16T16:26:25.6481002Z", "source": "User reported choosing Over on all three Week 10 games. Original placement time unknown; reported after the games finished."}}
   ]
 }

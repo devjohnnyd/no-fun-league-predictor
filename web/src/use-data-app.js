@@ -214,25 +214,31 @@ export function useDataApp(snapshot, {
     if (hosted || !config?.endpoint) return;
     const endpoint = new URL(config.endpoint, window.location.href);
     if (endpoint.origin !== window.location.origin) return;
+    const requestedWeek = Number(new URL(window.location.href).searchParams.get("week") || snapshot.period?.week);
+    const week = Number.isInteger(requestedWeek) && requestedWeek >= 1 && requestedWeek <= 18 ? requestedWeek : snapshot.period?.week;
+    endpoint.searchParams.set("week", String(week));
     let active = true;
     let inFlight = null;
-    let sourceTime = Date.parse(snapshot.generatedAt || 0);
-    const load = async () => {
+    let sourceTime = week === snapshot.period?.week ? Date.parse(snapshot.generatedAt || 0) : 0;
+    const load = async (event) => {
       if (!active || inFlight || document.hidden) return;
       const controller = new AbortController();
       inFlight = controller;
       const timeout = setTimeout(() => controller.abort(), 15000);
       try {
-        const response = await fetch(endpoint, { cache: "no-store", credentials: "same-origin", signal: controller.signal });
+        const requestUrl = new URL(endpoint);
+        if (event?.type === "nfl:refresh-scores") requestUrl.searchParams.set("refresh", "1");
+        const response = await fetch(requestUrl, { cache: "no-store", credentials: "same-origin", signal: controller.signal });
         if (!response.ok) throw new Error("Score feed is unavailable. Showing the last successful update.");
         const next = await response.json();
         const query = next.queries?.matchups;
-        if (next.period?.season !== snapshot.period?.season || next.period?.week !== snapshot.period?.week || !Array.isArray(query?.rows))
+        if (next.period?.season !== snapshot.period?.season || next.period?.week !== week || !Array.isArray(query?.rows))
           throw new Error("Score feed returned a different week or an invalid payload.");
         const ids = query.rows.map(row => row.eventId);
         if (!ids.length || new Set(ids).size !== ids.length || query.rows.some(row => !row.homeCode || !row.awayCode))
           throw new Error("Score feed has missing or duplicated games.");
-        validateMatchupRefresh(queriesRef.current.matchups?.rows, query.rows);
+        const expected = week === snapshot.period?.week ? queriesRef.current.matchups?.rows : snapshot.seasonSchedule?.[String(week)];
+        validateMatchupRefresh(expected, query.rows);
         const nextTime = Date.parse(next.generatedAt);
         if (!Number.isFinite(nextTime) || nextTime < sourceTime)
           throw new Error("Score feed is older than the displayed data.");
@@ -244,7 +250,7 @@ export function useDataApp(snapshot, {
         const nextQueries = { ...queriesRef.current, matchups: query, ...(brochure ? {brochure} : {}) };
         queriesRef.current = nextQueries;
         setQueries(nextQueries);
-        onSnapshotChange?.(current => ({ ...current, queries: nextQueries, generatedAt: next.generatedAt,
+        onSnapshotChange?.(current => ({ ...current, queries: nextQueries, period: next.period, generatedAt: next.generatedAt,
           nflFeed: { status: "connected", lastSuccessfulSourceAt: next.generatedAt, error: null } }));
       } catch (error) {
         if (active) onSnapshotChange?.(current => ({ ...current,

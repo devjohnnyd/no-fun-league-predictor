@@ -1,7 +1,1405 @@
 {
   "title": "No Fun League",
-  "generatedAt": "2026-11-16T13:34:53.767840+00:00",
+  "generatedAt": "2026-11-16T16:43:24.577396+00:00",
   "buildStatus": "complete",
+  "seasonSchedule": {
+    "1": [
+      {
+        "eventId": "401872656",
+        "homeCode": "SEA",
+        "awayCode": "NE"
+      },
+      {
+        "eventId": "401872657",
+        "homeCode": "LAR",
+        "awayCode": "SF"
+      },
+      {
+        "eventId": "401872661",
+        "homeCode": "CAR",
+        "awayCode": "CHI"
+      },
+      {
+        "eventId": "401872925",
+        "homeCode": "CIN",
+        "awayCode": "TB"
+      },
+      {
+        "eventId": "401872923",
+        "homeCode": "DET",
+        "awayCode": "NO"
+      },
+      {
+        "eventId": "401872660",
+        "homeCode": "HOU",
+        "awayCode": "BUF"
+      },
+      {
+        "eventId": "401872659",
+        "homeCode": "IND",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401872922",
+        "homeCode": "JAX",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401872658",
+        "homeCode": "PIT",
+        "awayCode": "ATL"
+      },
+      {
+        "eventId": "401872924",
+        "homeCode": "TEN",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401872926",
+        "homeCode": "LAC",
+        "awayCode": "ARI"
+      },
+      {
+        "eventId": "401872928",
+        "homeCode": "LV",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401872927",
+        "homeCode": "MIN",
+        "awayCode": "GB"
+      },
+      {
+        "eventId": "401872929",
+        "homeCode": "PHI",
+        "awayCode": "WSH"
+      },
+      {
+        "eventId": "401872930",
+        "homeCode": "NYG",
+        "awayCode": "DAL"
+      },
+      {
+        "eventId": "401872931",
+        "homeCode": "KC",
+        "awayCode": "DEN"
+      }
+    ],
+    "2": [
+      {
+        "eventId": "401872932",
+        "homeCode": "BUF",
+        "awayCode": "DET"
+      },
+      {
+        "eventId": "401872933",
+        "homeCode": "ATL",
+        "awayCode": "CAR"
+      },
+      {
+        "eventId": "401872938",
+        "homeCode": "BAL",
+        "awayCode": "NO"
+      },
+      {
+        "eventId": "401872937",
+        "homeCode": "CHI",
+        "awayCode": "MIN"
+      },
+      {
+        "eventId": "401872934",
+        "homeCode": "HOU",
+        "awayCode": "CIN"
+      },
+      {
+        "eventId": "401872946",
+        "homeCode": "NE",
+        "awayCode": "PIT"
+      },
+      {
+        "eventId": "401872936",
+        "homeCode": "NYJ",
+        "awayCode": "GB"
+      },
+      {
+        "eventId": "401872935",
+        "homeCode": "TB",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401872939",
+        "homeCode": "TEN",
+        "awayCode": "PHI"
+      },
+      {
+        "eventId": "401872940",
+        "homeCode": "DEN",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401872941",
+        "homeCode": "LAC",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401872943",
+        "homeCode": "ARI",
+        "awayCode": "SEA"
+      },
+      {
+        "eventId": "401872944",
+        "homeCode": "DAL",
+        "awayCode": "WSH"
+      },
+      {
+        "eventId": "401872942",
+        "homeCode": "SF",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401872945",
+        "homeCode": "KC",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401872947",
+        "homeCode": "LAR",
+        "awayCode": "NYG"
+      }
+    ],
+    "3": [
+      {
+        "eventId": "401872948",
+        "homeCode": "GB",
+        "awayCode": "ATL"
+      },
+      {
+        "eventId": "401872953",
+        "homeCode": "BUF",
+        "awayCode": "LAC"
+      },
+      {
+        "eventId": "401872949",
+        "homeCode": "CLE",
+        "awayCode": "CAR"
+      },
+      {
+        "eventId": "401872954",
+        "homeCode": "DET",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401872951",
+        "homeCode": "IND",
+        "awayCode": "HOU"
+      },
+      {
+        "eventId": "401872957",
+        "homeCode": "JAX",
+        "awayCode": "NE"
+      },
+      {
+        "eventId": "401872952",
+        "homeCode": "MIA",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401872956",
+        "homeCode": "NYG",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401872950",
+        "homeCode": "PIT",
+        "awayCode": "CIN"
+      },
+      {
+        "eventId": "401872955",
+        "homeCode": "WSH",
+        "awayCode": "SEA"
+      },
+      {
+        "eventId": "401872958",
+        "homeCode": "SF",
+        "awayCode": "ARI"
+      },
+      {
+        "eventId": "401872959",
+        "homeCode": "TB",
+        "awayCode": "MIN"
+      },
+      {
+        "eventId": "401872960",
+        "homeCode": "DAL",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401872961",
+        "homeCode": "NO",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401872962",
+        "homeCode": "DEN",
+        "awayCode": "LAR"
+      },
+      {
+        "eventId": "401872963",
+        "homeCode": "CHI",
+        "awayCode": "PHI"
+      }
+    ],
+    "4": [
+      {
+        "eventId": "401872964",
+        "homeCode": "CLE",
+        "awayCode": "PIT"
+      },
+      {
+        "eventId": "401872965",
+        "homeCode": "WSH",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401872973",
+        "homeCode": "BAL",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401872971",
+        "homeCode": "BUF",
+        "awayCode": "NE"
+      },
+      {
+        "eventId": "401872972",
+        "homeCode": "CHI",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401872969",
+        "homeCode": "CIN",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401872967",
+        "homeCode": "HOU",
+        "awayCode": "DAL"
+      },
+      {
+        "eventId": "401872966",
+        "homeCode": "NYG",
+        "awayCode": "ARI"
+      },
+      {
+        "eventId": "401872970",
+        "homeCode": "PHI",
+        "awayCode": "LAR"
+      },
+      {
+        "eventId": "401872968",
+        "homeCode": "TB",
+        "awayCode": "GB"
+      },
+      {
+        "eventId": "401872974",
+        "homeCode": "MIN",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401872976",
+        "homeCode": "LV",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401872977",
+        "homeCode": "SEA",
+        "awayCode": "LAC"
+      },
+      {
+        "eventId": "401872975",
+        "homeCode": "SF",
+        "awayCode": "DEN"
+      },
+      {
+        "eventId": "401872978",
+        "homeCode": "CAR",
+        "awayCode": "DET"
+      },
+      {
+        "eventId": "401872979",
+        "homeCode": "NO",
+        "awayCode": "ATL"
+      }
+    ],
+    "5": [
+      {
+        "eventId": "401872980",
+        "homeCode": "DAL",
+        "awayCode": "TB"
+      },
+      {
+        "eventId": "401872981",
+        "homeCode": "JAX",
+        "awayCode": "PHI"
+      },
+      {
+        "eventId": "401872990",
+        "homeCode": "GB",
+        "awayCode": "CHI"
+      },
+      {
+        "eventId": "401872982",
+        "homeCode": "MIA",
+        "awayCode": "CIN"
+      },
+      {
+        "eventId": "401872986",
+        "homeCode": "NE",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401872987",
+        "homeCode": "NO",
+        "awayCode": "MIN"
+      },
+      {
+        "eventId": "401872983",
+        "homeCode": "NYJ",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401872985",
+        "homeCode": "PIT",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401872984",
+        "homeCode": "TEN",
+        "awayCode": "HOU"
+      },
+      {
+        "eventId": "401872988",
+        "homeCode": "WSH",
+        "awayCode": "NYG"
+      },
+      {
+        "eventId": "401872989",
+        "homeCode": "LAC",
+        "awayCode": "DEN"
+      },
+      {
+        "eventId": "401872991",
+        "homeCode": "ARI",
+        "awayCode": "DET"
+      },
+      {
+        "eventId": "401872992",
+        "homeCode": "SEA",
+        "awayCode": "SF"
+      },
+      {
+        "eventId": "401872993",
+        "homeCode": "ATL",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401872994",
+        "homeCode": "LAR",
+        "awayCode": "BUF"
+      }
+    ],
+    "6": [
+      {
+        "eventId": "401872995",
+        "homeCode": "DEN",
+        "awayCode": "SEA"
+      },
+      {
+        "eventId": "401872996",
+        "homeCode": "JAX",
+        "awayCode": "HOU"
+      },
+      {
+        "eventId": "401872999",
+        "homeCode": "ATL",
+        "awayCode": "CHI"
+      },
+      {
+        "eventId": "401872997",
+        "homeCode": "CLE",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401873003",
+        "homeCode": "IND",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401873001",
+        "homeCode": "NE",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401873000",
+        "homeCode": "NYG",
+        "awayCode": "NO"
+      },
+      {
+        "eventId": "401872998",
+        "homeCode": "PHI",
+        "awayCode": "CAR"
+      },
+      {
+        "eventId": "401873002",
+        "homeCode": "TB",
+        "awayCode": "PIT"
+      },
+      {
+        "eventId": "401873004",
+        "homeCode": "LAR",
+        "awayCode": "ARI"
+      },
+      {
+        "eventId": "401873006",
+        "homeCode": "KC",
+        "awayCode": "LAC"
+      },
+      {
+        "eventId": "401873005",
+        "homeCode": "LV",
+        "awayCode": "BUF"
+      },
+      {
+        "eventId": "401873007",
+        "homeCode": "GB",
+        "awayCode": "DAL"
+      },
+      {
+        "eventId": "401873008",
+        "homeCode": "SF",
+        "awayCode": "WSH"
+      }
+    ],
+    "7": [
+      {
+        "eventId": "401873010",
+        "homeCode": "CHI",
+        "awayCode": "NE"
+      },
+      {
+        "eventId": "401873011",
+        "homeCode": "NO",
+        "awayCode": "PIT"
+      },
+      {
+        "eventId": "401873017",
+        "homeCode": "ATL",
+        "awayCode": "SF"
+      },
+      {
+        "eventId": "401873012",
+        "homeCode": "BAL",
+        "awayCode": "CIN"
+      },
+      {
+        "eventId": "401873018",
+        "homeCode": "CAR",
+        "awayCode": "TB"
+      },
+      {
+        "eventId": "401873016",
+        "homeCode": "HOU",
+        "awayCode": "NYG"
+      },
+      {
+        "eventId": "401873014",
+        "homeCode": "MIN",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401873015",
+        "homeCode": "NYJ",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401873013",
+        "homeCode": "TEN",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401873019",
+        "homeCode": "ARI",
+        "awayCode": "DEN"
+      },
+      {
+        "eventId": "401873020",
+        "homeCode": "DET",
+        "awayCode": "GB"
+      },
+      {
+        "eventId": "401873021",
+        "homeCode": "LV",
+        "awayCode": "LAR"
+      },
+      {
+        "eventId": "401873022",
+        "homeCode": "SEA",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401873009",
+        "homeCode": "PHI",
+        "awayCode": "DAL"
+      }
+    ],
+    "8": [
+      {
+        "eventId": "401873023",
+        "homeCode": "GB",
+        "awayCode": "CAR"
+      },
+      {
+        "eventId": "401873026",
+        "homeCode": "BUF",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401873031",
+        "homeCode": "CIN",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401873024",
+        "homeCode": "DAL",
+        "awayCode": "ARI"
+      },
+      {
+        "eventId": "401873030",
+        "homeCode": "DET",
+        "awayCode": "MIN"
+      },
+      {
+        "eventId": "401873028",
+        "homeCode": "JAX",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401873029",
+        "homeCode": "NYJ",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401873027",
+        "homeCode": "PIT",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401873025",
+        "homeCode": "TB",
+        "awayCode": "ATL"
+      },
+      {
+        "eventId": "401873032",
+        "homeCode": "LAR",
+        "awayCode": "LAC"
+      },
+      {
+        "eventId": "401873033",
+        "homeCode": "DEN",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401873034",
+        "homeCode": "MIA",
+        "awayCode": "NE"
+      },
+      {
+        "eventId": "401873035",
+        "homeCode": "WSH",
+        "awayCode": "PHI"
+      },
+      {
+        "eventId": "401873036",
+        "homeCode": "SEA",
+        "awayCode": "CHI"
+      }
+    ],
+    "9": [
+      {
+        "eventId": "401873037",
+        "homeCode": "BAL",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401873038",
+        "homeCode": "ATL",
+        "awayCode": "CIN"
+      },
+      {
+        "eventId": "401873041",
+        "homeCode": "CAR",
+        "awayCode": "DEN"
+      },
+      {
+        "eventId": "401873040",
+        "homeCode": "IND",
+        "awayCode": "DAL"
+      },
+      {
+        "eventId": "401873045",
+        "homeCode": "KC",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401873042",
+        "homeCode": "MIA",
+        "awayCode": "DET"
+      },
+      {
+        "eventId": "401873039",
+        "homeCode": "NO",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401873044",
+        "homeCode": "PHI",
+        "awayCode": "NYG"
+      },
+      {
+        "eventId": "401873043",
+        "homeCode": "WSH",
+        "awayCode": "LAR"
+      },
+      {
+        "eventId": "401873046",
+        "homeCode": "LAC",
+        "awayCode": "HOU"
+      },
+      {
+        "eventId": "401873049",
+        "homeCode": "NE",
+        "awayCode": "GB"
+      },
+      {
+        "eventId": "401873048",
+        "homeCode": "SEA",
+        "awayCode": "ARI"
+      },
+      {
+        "eventId": "401873047",
+        "homeCode": "SF",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401873050",
+        "homeCode": "CHI",
+        "awayCode": "TB"
+      },
+      {
+        "eventId": "401873051",
+        "homeCode": "MIN",
+        "awayCode": "BUF"
+      }
+    ],
+    "10": [
+      {
+        "eventId": "401873052",
+        "homeCode": "NYG",
+        "awayCode": "WSH"
+      },
+      {
+        "eventId": "401873053",
+        "homeCode": "DET",
+        "awayCode": "NE"
+      },
+      {
+        "eventId": "401873058",
+        "homeCode": "ATL",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401873056",
+        "homeCode": "CLE",
+        "awayCode": "HOU"
+      },
+      {
+        "eventId": "401873060",
+        "homeCode": "GB",
+        "awayCode": "MIN"
+      },
+      {
+        "eventId": "401873059",
+        "homeCode": "IND",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401873055",
+        "homeCode": "NO",
+        "awayCode": "CAR"
+      },
+      {
+        "eventId": "401873054",
+        "homeCode": "NYJ",
+        "awayCode": "BUF"
+      },
+      {
+        "eventId": "401873057",
+        "homeCode": "TEN",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401873061",
+        "homeCode": "ARI",
+        "awayCode": "LAR"
+      },
+      {
+        "eventId": "401873062",
+        "homeCode": "LV",
+        "awayCode": "SEA"
+      },
+      {
+        "eventId": "401873063",
+        "homeCode": "DAL",
+        "awayCode": "SF"
+      },
+      {
+        "eventId": "401873064",
+        "homeCode": "CIN",
+        "awayCode": "PIT"
+      },
+      {
+        "eventId": "401873065",
+        "homeCode": "BAL",
+        "awayCode": "LAC"
+      }
+    ],
+    "11": [
+      {
+        "eventId": "401873066",
+        "homeCode": "HOU",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401873070",
+        "homeCode": "BUF",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401873068",
+        "homeCode": "CAR",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401873071",
+        "homeCode": "CHI",
+        "awayCode": "NO"
+      },
+      {
+        "eventId": "401873073",
+        "homeCode": "DAL",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401873072",
+        "homeCode": "DET",
+        "awayCode": "TB"
+      },
+      {
+        "eventId": "401873067",
+        "homeCode": "KC",
+        "awayCode": "ARI"
+      },
+      {
+        "eventId": "401873069",
+        "homeCode": "NYG",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401873074",
+        "homeCode": "LAC",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401873075",
+        "homeCode": "DEN",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401873076",
+        "homeCode": "PHI",
+        "awayCode": "PIT"
+      },
+      {
+        "eventId": "401873077",
+        "homeCode": "SF",
+        "awayCode": "MIN"
+      },
+      {
+        "eventId": "401873078",
+        "homeCode": "WSH",
+        "awayCode": "CIN"
+      }
+    ],
+    "12": [
+      {
+        "eventId": "401873079",
+        "homeCode": "LAR",
+        "awayCode": "GB"
+      },
+      {
+        "eventId": "401873081",
+        "homeCode": "DET",
+        "awayCode": "CHI"
+      },
+      {
+        "eventId": "401873080",
+        "homeCode": "DAL",
+        "awayCode": "PHI"
+      },
+      {
+        "eventId": "401873082",
+        "homeCode": "BUF",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401873083",
+        "homeCode": "PIT",
+        "awayCode": "DEN"
+      },
+      {
+        "eventId": "401873087",
+        "homeCode": "CIN",
+        "awayCode": "NO"
+      },
+      {
+        "eventId": "401873086",
+        "homeCode": "CLE",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401873085",
+        "homeCode": "HOU",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401873088",
+        "homeCode": "IND",
+        "awayCode": "NYG"
+      },
+      {
+        "eventId": "401873089",
+        "homeCode": "MIA",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401873084",
+        "homeCode": "MIN",
+        "awayCode": "ATL"
+      },
+      {
+        "eventId": "401873090",
+        "homeCode": "JAX",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401873092",
+        "homeCode": "ARI",
+        "awayCode": "WSH"
+      },
+      {
+        "eventId": "401873091",
+        "homeCode": "SF",
+        "awayCode": "SEA"
+      },
+      {
+        "eventId": "401873093",
+        "homeCode": "LAC",
+        "awayCode": "NE"
+      },
+      {
+        "eventId": "401873094",
+        "homeCode": "TB",
+        "awayCode": "CAR"
+      }
+    ],
+    "13": [
+      {
+        "eventId": "401873096",
+        "homeCode": "LAR",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401873098",
+        "homeCode": "ATL",
+        "awayCode": "DET"
+      },
+      {
+        "eventId": "401873100",
+        "homeCode": "CHI",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401873097",
+        "homeCode": "CLE",
+        "awayCode": "CIN"
+      },
+      {
+        "eventId": "401873099",
+        "homeCode": "NO",
+        "awayCode": "GB"
+      },
+      {
+        "eventId": "401873095",
+        "homeCode": "NYG",
+        "awayCode": "SF"
+      },
+      {
+        "eventId": "401873101",
+        "homeCode": "TB",
+        "awayCode": "LAC"
+      },
+      {
+        "eventId": "401873102",
+        "homeCode": "TEN",
+        "awayCode": "WSH"
+      },
+      {
+        "eventId": "401873104",
+        "homeCode": "ARI",
+        "awayCode": "PHI"
+      },
+      {
+        "eventId": "401873103",
+        "homeCode": "DEN",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401873106",
+        "homeCode": "MIN",
+        "awayCode": "CAR"
+      },
+      {
+        "eventId": "401873105",
+        "homeCode": "NE",
+        "awayCode": "BUF"
+      },
+      {
+        "eventId": "401873107",
+        "homeCode": "PIT",
+        "awayCode": "HOU"
+      },
+      {
+        "eventId": "401873108",
+        "homeCode": "SEA",
+        "awayCode": "DAL"
+      }
+    ],
+    "14": [
+      {
+        "eventId": "401873109",
+        "homeCode": "NE",
+        "awayCode": "MIN"
+      },
+      {
+        "eventId": "401873116",
+        "homeCode": "BAL",
+        "awayCode": "TB"
+      },
+      {
+        "eventId": "401873115",
+        "homeCode": "CAR",
+        "awayCode": "NO"
+      },
+      {
+        "eventId": "401873110",
+        "homeCode": "CLE",
+        "awayCode": "ATL"
+      },
+      {
+        "eventId": "401873117",
+        "homeCode": "DET",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401873111",
+        "homeCode": "MIA",
+        "awayCode": "CHI"
+      },
+      {
+        "eventId": "401873112",
+        "homeCode": "NYJ",
+        "awayCode": "DEN"
+      },
+      {
+        "eventId": "401873114",
+        "homeCode": "PHI",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401873113",
+        "homeCode": "WSH",
+        "awayCode": "HOU"
+      },
+      {
+        "eventId": "401873118",
+        "homeCode": "LV",
+        "awayCode": "LAC"
+      },
+      {
+        "eventId": "401873119",
+        "homeCode": "CIN",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401873121",
+        "homeCode": "SEA",
+        "awayCode": "NYG"
+      },
+      {
+        "eventId": "401873120",
+        "homeCode": "SF",
+        "awayCode": "LAR"
+      },
+      {
+        "eventId": "401873122",
+        "homeCode": "GB",
+        "awayCode": "BUF"
+      },
+      {
+        "eventId": "401873123",
+        "homeCode": "JAX",
+        "awayCode": "PIT"
+      }
+    ],
+    "15": [
+      {
+        "eventId": "401873124",
+        "homeCode": "LAC",
+        "awayCode": "SF"
+      },
+      {
+        "eventId": "401873125",
+        "homeCode": "PHI",
+        "awayCode": "SEA"
+      },
+      {
+        "eventId": "401873126",
+        "homeCode": "BUF",
+        "awayCode": "CHI"
+      },
+      {
+        "eventId": "401873129",
+        "homeCode": "CAR",
+        "awayCode": "CIN"
+      },
+      {
+        "eventId": "401873133",
+        "homeCode": "GB",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401873132",
+        "homeCode": "HOU",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401873130",
+        "homeCode": "NYG",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401873128",
+        "homeCode": "PIT",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401873134",
+        "homeCode": "TB",
+        "awayCode": "NO"
+      },
+      {
+        "eventId": "401873131",
+        "homeCode": "TEN",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401873127",
+        "homeCode": "WSH",
+        "awayCode": "ATL"
+      },
+      {
+        "eventId": "401873135",
+        "homeCode": "ARI",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401873136",
+        "homeCode": "LAR",
+        "awayCode": "DAL"
+      },
+      {
+        "eventId": "401873137",
+        "homeCode": "LV",
+        "awayCode": "DEN"
+      },
+      {
+        "eventId": "401873138",
+        "homeCode": "MIN",
+        "awayCode": "DET"
+      },
+      {
+        "eventId": "401873139",
+        "homeCode": "KC",
+        "awayCode": "NE"
+      }
+    ],
+    "16": [
+      {
+        "eventId": "401873140",
+        "homeCode": "PHI",
+        "awayCode": "HOU"
+      },
+      {
+        "eventId": "401873141",
+        "homeCode": "CHI",
+        "awayCode": "GB"
+      },
+      {
+        "eventId": "401873142",
+        "homeCode": "DEN",
+        "awayCode": "BUF"
+      },
+      {
+        "eventId": "401873143",
+        "homeCode": "SEA",
+        "awayCode": "LAR"
+      },
+      {
+        "eventId": "401873146",
+        "homeCode": "ATL",
+        "awayCode": "TB"
+      },
+      {
+        "eventId": "401873149",
+        "homeCode": "BAL",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401873145",
+        "homeCode": "IND",
+        "awayCode": "CIN"
+      },
+      {
+        "eventId": "401873150",
+        "homeCode": "MIA",
+        "awayCode": "LAC"
+      },
+      {
+        "eventId": "401873147",
+        "homeCode": "MIN",
+        "awayCode": "WSH"
+      },
+      {
+        "eventId": "401873148",
+        "homeCode": "NO",
+        "awayCode": "ARI"
+      },
+      {
+        "eventId": "401873151",
+        "homeCode": "NYJ",
+        "awayCode": "NE"
+      },
+      {
+        "eventId": "401873144",
+        "homeCode": "PIT",
+        "awayCode": "CAR"
+      },
+      {
+        "eventId": "401873152",
+        "homeCode": "LV",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401873153",
+        "homeCode": "KC",
+        "awayCode": "SF"
+      },
+      {
+        "eventId": "401873154",
+        "homeCode": "DAL",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401873155",
+        "homeCode": "DET",
+        "awayCode": "NYG"
+      }
+    ],
+    "17": [
+      {
+        "eventId": "401873156",
+        "homeCode": "CIN",
+        "awayCode": "BAL"
+      },
+      {
+        "eventId": "401873164",
+        "homeCode": "ATL",
+        "awayCode": "NO"
+      },
+      {
+        "eventId": "401873167",
+        "homeCode": "CAR",
+        "awayCode": "SEA"
+      },
+      {
+        "eventId": "401873162",
+        "homeCode": "CLE",
+        "awayCode": "IND"
+      },
+      {
+        "eventId": "401873165",
+        "homeCode": "DAL",
+        "awayCode": "NYG"
+      },
+      {
+        "eventId": "401873160",
+        "homeCode": "JAX",
+        "awayCode": "WSH"
+      },
+      {
+        "eventId": "401873158",
+        "homeCode": "LAC",
+        "awayCode": "KC"
+      },
+      {
+        "eventId": "401873161",
+        "homeCode": "MIA",
+        "awayCode": "BUF"
+      },
+      {
+        "eventId": "401873157",
+        "homeCode": "NE",
+        "awayCode": "DEN"
+      },
+      {
+        "eventId": "401873163",
+        "homeCode": "NYJ",
+        "awayCode": "MIN"
+      },
+      {
+        "eventId": "401873159",
+        "homeCode": "TB",
+        "awayCode": "LAR"
+      },
+      {
+        "eventId": "401873166",
+        "homeCode": "TEN",
+        "awayCode": "PIT"
+      },
+      {
+        "eventId": "401873168",
+        "homeCode": "ARI",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401873169",
+        "homeCode": "CHI",
+        "awayCode": "DET"
+      },
+      {
+        "eventId": "401873170",
+        "homeCode": "SF",
+        "awayCode": "PHI"
+      },
+      {
+        "eventId": "401873171",
+        "homeCode": "GB",
+        "awayCode": "HOU"
+      }
+    ],
+    "18": [
+      {
+        "eventId": "401873184",
+        "homeCode": "ARI",
+        "awayCode": "SF"
+      },
+      {
+        "eventId": "401873183",
+        "homeCode": "BAL",
+        "awayCode": "PIT"
+      },
+      {
+        "eventId": "401873181",
+        "homeCode": "BUF",
+        "awayCode": "NYJ"
+      },
+      {
+        "eventId": "401873172",
+        "homeCode": "CAR",
+        "awayCode": "ATL"
+      },
+      {
+        "eventId": "401873174",
+        "homeCode": "CIN",
+        "awayCode": "CLE"
+      },
+      {
+        "eventId": "401873179",
+        "homeCode": "DEN",
+        "awayCode": "LAC"
+      },
+      {
+        "eventId": "401873176",
+        "homeCode": "GB",
+        "awayCode": "DET"
+      },
+      {
+        "eventId": "401873187",
+        "homeCode": "HOU",
+        "awayCode": "TEN"
+      },
+      {
+        "eventId": "401873177",
+        "homeCode": "IND",
+        "awayCode": "JAX"
+      },
+      {
+        "eventId": "401873178",
+        "homeCode": "KC",
+        "awayCode": "LV"
+      },
+      {
+        "eventId": "401873185",
+        "homeCode": "LAR",
+        "awayCode": "SEA"
+      },
+      {
+        "eventId": "401873173",
+        "homeCode": "MIN",
+        "awayCode": "CHI"
+      },
+      {
+        "eventId": "401873180",
+        "homeCode": "NE",
+        "awayCode": "MIA"
+      },
+      {
+        "eventId": "401873186",
+        "homeCode": "NO",
+        "awayCode": "TB"
+      },
+      {
+        "eventId": "401873182",
+        "homeCode": "NYG",
+        "awayCode": "PHI"
+      },
+      {
+        "eventId": "401873175",
+        "homeCode": "WSH",
+        "awayCode": "DAL"
+      }
+    ]
+  },
   "period": {
     "season": 2026,
     "week": 10
@@ -10,13 +1408,25 @@
     "brochure": {
       "rows": [
         {
+          "selectionId": "2026:10:401873060:total:42.5",
+          "kind": "total",
+          "season": 2026,
+          "week": 10,
+          "kickoff": "2026-11-15T18:00Z",
           "eventId": "401873060",
           "homeCode": "GB",
           "awayCode": "MIN",
           "line": 42.5,
+          "liveTotal": null,
+          "statusDetail": "Final",
           "actualTotal": 40,
           "actualOutcome": "Under",
           "state": "post",
+          "userPick": "Over",
+          "userReportedAt": "2026-11-16T16:26:25.6481002Z",
+          "userPickSource": "User reported choosing Over on all three Week 10 games. Original placement time unknown; reported after the games finished.",
+          "userReportedAfterKickoff": true,
+          "userCorrect": false,
           "projection": null,
           "analysis": null,
           "predictionStatus": "No pregame forecast recorded",
@@ -26,13 +1436,25 @@
           "correct": null
         },
         {
+          "selectionId": "2026:10:401873062:total:43.5",
+          "kind": "total",
+          "season": 2026,
+          "week": 10,
+          "kickoff": "2026-11-15T21:05Z",
           "eventId": "401873062",
           "homeCode": "LV",
           "awayCode": "SEA",
           "line": 43.5,
+          "liveTotal": null,
+          "statusDetail": "Final",
           "actualTotal": 34,
           "actualOutcome": "Under",
           "state": "post",
+          "userPick": "Over",
+          "userReportedAt": "2026-11-16T16:26:25.6481002Z",
+          "userPickSource": "User reported choosing Over on all three Week 10 games. Original placement time unknown; reported after the games finished.",
+          "userReportedAfterKickoff": true,
+          "userCorrect": false,
           "projection": null,
           "analysis": null,
           "predictionStatus": "No pregame forecast recorded",
@@ -42,13 +1464,25 @@
           "correct": null
         },
         {
+          "selectionId": "2026:10:401873064:total:47.5",
+          "kind": "total",
+          "season": 2026,
+          "week": 10,
+          "kickoff": "2026-11-16T01:20Z",
           "eventId": "401873064",
           "homeCode": "CIN",
           "awayCode": "PIT",
           "line": 47.5,
+          "liveTotal": null,
+          "statusDetail": "Final",
           "actualTotal": 56,
           "actualOutcome": "Over",
           "state": "post",
+          "userPick": "Over",
+          "userReportedAt": "2026-11-16T16:26:25.6481002Z",
+          "userPickSource": "User reported choosing Over on all three Week 10 games. Original placement time unknown; reported after the games finished.",
+          "userReportedAfterKickoff": true,
+          "userCorrect": true,
           "projection": null,
           "analysis": null,
           "predictionStatus": "No pregame forecast recorded",
@@ -61,11 +1495,15 @@
       "source": {
         "label": "Three weekly brochure totals",
         "provider": "User-provided card / ESPN results / experimental totals model",
-        "executedAt": "2026-11-16T13:34:53.767840+00:00",
+        "executedAt": "2026-11-16T16:43:24.577396+00:00",
         "evidenceFlow": [
           {
             "title": "Printed lines",
             "detail": "User-provided photo of William Hill NFL Progressive Card, Week 10, November 15-16 2026; printed totals transcribed visually. Exact photo receipt minute unavailable; recorded after these Sunday games finished."
+          },
+          {
+            "title": "Your selections",
+            "detail": "User-reported choices are scored separately from model predictions. A report made after kickoff is labeled and never treated as a timestamped model pick."
           },
           {
             "title": "Prediction timing",
@@ -123,7 +1561,26 @@
           "awayTravelKm": 318.8628089714557,
           "homeQb": null,
           "awayQb": null,
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873052:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": null,
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 45,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873053",
@@ -168,7 +1625,26 @@
           "awayTravelKm": 6214.1210912206625,
           "homeQb": "Jared Goff",
           "awayQb": "Drake Maye",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873053:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 45,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873054",
@@ -213,7 +1689,26 @@
           "awayTravelKm": 441.03394374354565,
           "homeQb": "Geno Smith",
           "awayQb": "Josh Allen",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873054:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 43,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873055",
@@ -258,7 +1753,26 @@
           "awayTravelKm": 1044.0906334502135,
           "homeQb": "Tyler Shough",
           "awayQb": "Bryce Young",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873055:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 37,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873056",
@@ -303,7 +1817,26 @@
           "awayTravelKm": 1792.4476687632896,
           "homeQb": "Deshaun Watson",
           "awayQb": "C.J. Stroud",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873056:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 51,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873057",
@@ -348,7 +1881,26 @@
           "awayTravelKm": 804.8339643285465,
           "homeQb": "Cam Ward",
           "awayQb": "Trevor Lawrence",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873057:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 63,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873058",
@@ -393,7 +1945,26 @@
           "awayTravelKm": 1087.640013594367,
           "homeQb": "Michael Penix Jr.",
           "awayQb": "Patrick Mahomes",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873058:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 48,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873059",
@@ -438,7 +2009,26 @@
           "awayTravelKm": 1632.5583896271824,
           "homeQb": "Daniel Jones",
           "awayQb": "Kyle McCord",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873059:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 46,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873060",
@@ -483,7 +2073,26 @@
           "awayTravelKm": 417.2004444321932,
           "homeQb": "Jordan Love",
           "awayQb": "Kirk Cousins",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873060:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 40,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873061",
@@ -528,7 +2137,26 @@
           "awayTravelKm": 562.5896031017128,
           "homeQb": "Carson Beck",
           "awayQb": "Matthew Stafford",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873061:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 40,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873062",
@@ -573,7 +2201,26 @@
           "awayTravelKm": 1402.1938298841299,
           "homeQb": "Fernando Mendoza",
           "awayQb": "Drew Lock",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873062:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 34,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873063",
@@ -618,7 +2265,26 @@
           "awayTravelKm": 2312.2893478641013,
           "homeQb": "Dak Prescott",
           "awayQb": "Brock Purdy",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873063:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 86,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873064",
@@ -663,7 +2329,26 @@
           "awayTravelKm": 412.7422081674721,
           "homeQb": "Joe Burrow",
           "awayQb": "Aaron Rodgers",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873064:market-total",
+            "firstObservedLine": null,
+            "latestLine": null,
+            "movement": null,
+            "book": null,
+            "observedAt": null,
+            "quoteStatus": "unavailable",
+            "analysis": null,
+            "projection": null,
+            "forecastIssuedAt": "2026-11-10",
+            "originalPick": null,
+            "originalLine": null,
+            "originalIssuedAt": null,
+            "actualTotal": 56,
+            "actualOutcome": null,
+            "correct": null,
+            "history": []
+          }
         },
         {
           "eventId": "401873065",
@@ -1036,18 +2721,361 @@
           "awayTravelKm": 3737.5153170965314,
           "homeQb": "Jacoby Brissett",
           "awayQb": "Justin Herbert",
-          "updatedAt": "2026-11-16T13:34:53.767840+00:00"
+          "updatedAt": "2026-11-16T16:43:24.577396+00:00",
+          "marketTotal": {
+            "selectionId": "2026:10:401873065:market-total",
+            "firstObservedLine": 39.5,
+            "latestLine": 39.5,
+            "movement": 0.0,
+            "book": "DraftKings",
+            "observedAt": "2026-11-16T16:43:24.577396+00:00",
+            "quoteStatus": "pregame",
+            "analysis": {
+              "line": 39.5,
+              "over_probability": 0.583941605839416,
+              "under_probability": 0.41605839416058393,
+              "push_probability": 0.0,
+              "lean": "Over",
+              "experimental": true
+            },
+            "projection": {
+              "projected_total": 40.818600687499725,
+              "interval_80": [
+                26.0,
+                57.0
+              ],
+              "total_samples": [
+                64,
+                43,
+                54,
+                47,
+                46,
+                57,
+                50,
+                34,
+                37,
+                32,
+                32,
+                25,
+                46,
+                24,
+                39,
+                57,
+                41,
+                29,
+                26,
+                50,
+                30,
+                26,
+                36,
+                45,
+                51,
+                54,
+                41,
+                43,
+                19,
+                45,
+                29,
+                28,
+                46,
+                59,
+                37,
+                35,
+                24,
+                42,
+                32,
+                53,
+                34,
+                31,
+                25,
+                25,
+                34,
+                18,
+                40,
+                71,
+                39,
+                56,
+                35,
+                27,
+                22,
+                37,
+                25,
+                47,
+                57,
+                38,
+                47,
+                45,
+                49,
+                65,
+                44,
+                48,
+                36,
+                75,
+                34,
+                47,
+                43,
+                32,
+                35,
+                69,
+                57,
+                24,
+                37,
+                44,
+                45,
+                60,
+                42,
+                57,
+                44,
+                19,
+                35,
+                46,
+                59,
+                37,
+                55,
+                42,
+                44,
+                48,
+                73,
+                45,
+                67,
+                41,
+                34,
+                39,
+                50,
+                35,
+                40,
+                29,
+                35,
+                24,
+                56,
+                51,
+                27,
+                43,
+                40,
+                54,
+                50,
+                46,
+                36,
+                45,
+                26,
+                46,
+                51,
+                37,
+                47,
+                41,
+                34,
+                44,
+                49,
+                48,
+                57,
+                34,
+                42,
+                45,
+                29,
+                27,
+                29,
+                44,
+                37,
+                43,
+                68,
+                48,
+                40,
+                47,
+                51,
+                46,
+                31,
+                43,
+                57,
+                30,
+                40,
+                34,
+                17,
+                24,
+                40,
+                34,
+                34,
+                52,
+                34,
+                41,
+                40,
+                25,
+                57,
+                47,
+                37,
+                41,
+                56,
+                52,
+                43,
+                53,
+                54,
+                33,
+                29,
+                35,
+                17,
+                46,
+                59,
+                47,
+                23,
+                56,
+                54,
+                46,
+                50,
+                41,
+                40,
+                46,
+                53,
+                38,
+                32,
+                71,
+                39,
+                53,
+                23,
+                31,
+                35,
+                39,
+                44,
+                32,
+                84,
+                51,
+                40,
+                46,
+                59,
+                56,
+                81,
+                35,
+                45,
+                45,
+                37,
+                53,
+                17,
+                33,
+                40,
+                24,
+                55,
+                43,
+                22,
+                44,
+                78,
+                37,
+                63,
+                47,
+                36,
+                51,
+                28,
+                7,
+                25,
+                44,
+                56,
+                31,
+                50,
+                33,
+                68,
+                27,
+                55,
+                46,
+                41,
+                34,
+                30,
+                44,
+                41,
+                32,
+                37,
+                61,
+                45,
+                38,
+                44,
+                63,
+                17,
+                49,
+                21,
+                59,
+                42,
+                50,
+                62,
+                41,
+                77,
+                31,
+                46,
+                38,
+                24,
+                52,
+                4,
+                35,
+                38,
+                81,
+                45,
+                33,
+                40,
+                35,
+                48,
+                33,
+                51,
+                50,
+                28,
+                43,
+                28,
+                49,
+                63,
+                36
+              ],
+              "calibration_games": 272,
+              "status": "experimental",
+              "interval_meaning": "Empirical predictive range from earlier out-of-week residuals; not a confidence interval or guarantee"
+            },
+            "forecastIssuedAt": "2026-11-16T13:35:40.761121+00:00",
+            "originalPick": {
+              "line": 39.5,
+              "over_probability": 0.583941605839416,
+              "under_probability": 0.41605839416058393,
+              "push_probability": 0.0,
+              "lean": "Over",
+              "experimental": true
+            },
+            "originalLine": 39.5,
+            "originalIssuedAt": "2026-11-16T16:43:24.577396+00:00",
+            "actualTotal": null,
+            "actualOutcome": null,
+            "correct": null,
+            "history": [
+              {
+                "season": 2026,
+                "week": 10,
+                "event": "401873065",
+                "home": "BAL",
+                "away": "LAC",
+                "book": "DraftKings",
+                "book_id": "100",
+                "line": 39.5,
+                "observed_at": "2026-11-16T16:43:24.577396+00:00",
+                "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week=10&limit=1000",
+                "source_sha256": "f9f2ce7d42a352c86dd145b566acf37ba8d5b0b80459f524ce0205b3925a31cf",
+                "analysis": {
+                  "line": 39.5,
+                  "over_probability": 0.583941605839416,
+                  "under_probability": 0.41605839416058393,
+                  "push_probability": 0.0,
+                  "lean": "Over",
+                  "experimental": true
+                },
+                "forecast_issued_at": "2026-11-16T13:35:40.761121+00:00"
+              }
+            ]
+          }
         }
       ],
       "source": {
         "label": "NFL weekly matchups, scores and saved forecasts",
         "provider": "ESPN / NFL / No Fun League",
-        "executedAt": "2026-11-16T13:34:53.767840+00:00",
+        "executedAt": "2026-11-16T16:43:24.577396+00:00",
         "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week=10&limit=1000",
         "evidenceFlow": [
           {
             "title": "Scores",
             "detail": "Public ESPN NFL scoreboard; season and week are validated. Only completed games count toward results."
+          },
+          {
+            "title": "Market totals",
+            "detail": "Timestamped ESPN-listed provider quotes. First observed means the first quote this tracker captured, not the market opening line. Movement compares the same provider. No line is invented for games without a saved quote. Market picks and fixed brochure lines remain separate."
           },
           {
             "title": "Picks",

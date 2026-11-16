@@ -141,7 +141,7 @@ def prepare(dataset_path, venues_path, staff_seed_path, season, week, output, re
     schedule_by_espn = {g["espn"]: g for g in dataset["schedule"] if g.get("espn")}
     prepared = []
     for game in manifest["games"]:
-        if not game["slate_eligible"] or game["state"] != "pre" or timestamp(game["kickoff"]) <= now:
+        if game["state"] != "pre" or timestamp(game["kickoff"]) <= now:
             continue
         game["home"], game["away"] = normalize_team(game["home"]), normalize_team(game["away"])
         event = game["event_id"]

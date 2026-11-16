@@ -94,6 +94,32 @@
 .nfl-total-result{padding-top:14px;border-top:1px solid var(--border)}
 .nfl-total-result span,.nfl-total-lean span{font-size:12px;color:var(--secondary)}
 .nfl-total-note{margin:12px 0 0}
+.nfl-total-records { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-bottom:16px; }
+.nfl-total-records>div { display:flex; flex-direction:column; gap:8px; padding:16px; border:1px solid var(--border); border-radius:14px; background:var(--surface); }
+.nfl-total-records span { font-size:13px; color:var(--secondary); }
+.nfl-total-records strong { font-size:27px; font-variant-numeric:tabular-nums; }
+.nfl-total-records small { font-size:12px; color:var(--secondary); line-height:1.5; }
+.nfl-total-status { display:flex; gap:8px; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.nfl-total-status>span:last-child { font-size:11px; color:var(--secondary); text-align:right; }
+.nfl-total-user { display:flex; flex-direction:column; gap:5px; margin-top:16px; font-size:13px; }
+.nfl-total-user>span,.nfl-total-user small { color:var(--secondary); font-size:12px; line-height:1.5; }
+.nfl-total-user .is-correct { color:var(--positive); }
+.nfl-total-user .is-miss { color:var(--negative); }
+.nfl-total-details { width:100%; min-height:44px; margin-top:16px; font-size:13px; }
+.nfl-week-select select { font:inherit; font-size:20px; font-weight:650; min-height:44px; max-width:150px; color:var(--text); background:var(--control); border:1px solid var(--border-strong); border-radius:10px; padding:8px; }
+.nfl-tracking-scope,.nfl-job-status { font-size:13px; line-height:1.6; color:var(--secondary); margin:0 0 20px; }
+.nfl-job-status { border:1px solid var(--border); border-radius:12px; padding:12px; overflow-wrap:anywhere; }
+.nfl-job-status.is-blocked { border-color:#b57e25; }
+.nfl-market-total { border-top:1px solid var(--border); margin-top:16px; padding-top:14px; font-size:12px; line-height:1.5; }
+.nfl-market-total p { margin:8px 0; color:var(--secondary); }
+.nfl-market-total small { color:var(--secondary); font-size:11px; }
+.nfl-market-heading { display:flex; justify-content:space-between; gap:8px; }
+.nfl-market-heading>strong:last-child { font-variant-numeric:tabular-nums; text-align:right; }
+.nfl-market-total .nfl-total-won { color:var(--positive); }
+.nfl-market-total .nfl-total-lost { color:var(--negative); }
+.nfl-history-scroll { max-width:100%; overflow:auto; }
+.nfl-history-scroll table { border-collapse:collapse; width:100%; font-size:12px; }
+.nfl-history-scroll th,.nfl-history-scroll td { padding:8px; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
 @media(max-width:760px){.nfl-brochure-grid{grid-template-columns:1fr}.nfl-total-card{padding:16px}}
 @media (max-width:620px) {
   .nfl-dashboard { --data-control-height:46px; padding-top:8px; }
@@ -127,6 +153,8 @@
   .nfl-search { width:100%; min-width:0; }
   .nfl-search input { height:46px; font-size:16px; }
   .nfl-game { padding:16px 16px 10px; }
+  .nfl-market-total { font-size:13px; }
+  .nfl-market-total small { font-size:12px; }
   .nfl-status { font-size:11px; padding:5px 7px; }
   .nfl-kickoff { font-size:12px; }
   .nfl-team-name { font-size:16px; line-height:1.35; }

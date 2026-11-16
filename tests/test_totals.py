@@ -7,7 +7,7 @@ import pandas as pd
 
 from nfl_predictor.engine import FeatureEngine
 from nfl_predictor.storage import read_json
-from nfl_predictor.totals import card_rows, fit_total, line_analysis, predict_total, score_card, total_features
+from nfl_predictor.totals import card_rows, fit_total, line_analysis, predict_total, saved_total_pick, score_card, total_features
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -47,6 +47,70 @@ class TotalsTests(unittest.TestCase):
         result = score_card(read_json(ROOT / "data/cards/2026-week10.json"), [], read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json"))
         self.assertEqual(result["metrics"]["games"], 0)
         self.assertEqual(result["unavailable_predictions"], 3)
+
+    def test_reported_over_choices_have_a_separate_one_and_two_record(self):
+        result = score_card(read_json(ROOT / "data/cards/2026-week10.json"), [], read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json"))
+        self.assertEqual(result["user_record"]["wins"], 1)
+        self.assertEqual(result["user_record"]["losses"], 2)
+        self.assertEqual(result["user_record"]["reported_after_kickoff"], 3)
+        self.assertEqual(result["metrics"]["games"], 0)
+        self.assertEqual(len({row["selectionId"] for row in result["games"]}), 3)
+
+    def test_live_totals_are_not_settled_and_missing_scores_stay_unknown(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        games = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")["games"]
+        for game in games:
+            game.update(completed=False, state="in", home_live_score=30, away_live_score=20)
+        rows = card_rows(card, games, {})
+        self.assertTrue(all(row["liveTotal"] == 50 and row["actualOutcome"] is None and row["userCorrect"] is None for row in rows))
+        for game in games:
+            game["home_live_score"] = None
+        self.assertTrue(all(row["liveTotal"] is None for row in card_rows(card, games, {})))
+
+    def test_invalid_user_pick_is_rejected(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        card["games"][0]["user_pick"]["pick"] = "Maybe"
+        with self.assertRaisesRegex(ValueError, "User total pick"):
+            card_rows(card, read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")["games"], {})
+
+    def test_original_total_pick_survives_newer_winner_and_totals_revisions(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        card["received_at"] = "2026-11-13T12:00:00Z"
+        results = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")
+        original = {"issued_at": "2026-11-13T13:00:00Z", "forecast": [
+            {"espn_id": row["event_id"], "home": row["home"], "away": row["away"],
+             "total_projection": {"total_samples": [30, 31, 32]}} for row in card["games"]]}
+        revised = copy.deepcopy(original)
+        revised["issued_at"] = "2026-11-13T14:00:00Z"
+        for row in revised["forecast"]:
+            row["total_projection"]["total_samples"] = [60, 61, 62]
+        winner_only = copy.deepcopy(revised)
+        winner_only["issued_at"] = "2026-11-13T15:00:00Z"
+        for row in winner_only["forecast"]:
+            del row["total_projection"]
+        result = score_card(card, [winner_only, revised, original], results)
+        self.assertTrue(all(row["analysis"]["lean"] == "Under" for row in result["games"]))
+        self.assertTrue(all(row["forecastIssuedAt"] == original["issued_at"] for row in result["games"]))
+
+    def test_frozen_total_choice_rejects_late_release_or_changed_line(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        card["received_at"] = "2026-11-13T12:00:00Z"
+        game = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")["games"][0]
+        selection = card["games"][0]
+        games = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")["games"]
+        game = next(g for g in games if g["event_id"] == selection["event_id"])
+        forecast = {"home": selection["home"], "away": selection["away"], "kickoff": game["kickoff"],
+                    "issued_at": "2026-11-13T13:00:00Z", "total_projection": {"total_samples": [30, 35, 50]}}
+        forecast["total_pick"] = saved_total_pick(card, selection, forecast, forecast["issued_at"])
+        with self.assertRaises(ValueError):
+            saved_total_pick(card, selection, forecast, game["kickoff"])
+        with self.assertRaises(ValueError):
+            saved_total_pick(card, selection, forecast, "2026-11-13T11:00:00Z")
+        forecasts = {selection["event_id"]: forecast}
+        self.assertIsNotNone(card_rows(card, games, forecasts)[0]["analysis"])
+        card["games"][0]["line"] += 1
+        with self.assertRaisesRegex(ValueError, "Saved total pick differs"):
+            card_rows(card, games, forecasts)
 
     def test_pregame_card_uses_saved_distribution_and_separates_a_push(self):
         card = read_json(ROOT / "data/cards/2026-week10.json")

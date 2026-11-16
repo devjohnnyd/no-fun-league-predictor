@@ -374,7 +374,7 @@
     "src/ui/tables/table-data.js": "654ecd1f0cbcd62381f85ab843c5dfc0816874761518d0438a4ac766d7a2bc22",
     "src/use-data-app-context-tools.js": "98110fa97f332df8e244944416e776a3398df73826885f46e1997b9d30735504",
     "src/use-data-app-image-tools.js": "1bff800a840b2771e0f130aad22e5732db2ef34e5b542f822cbb9ed70e3a8fa7",
-    "src/use-data-app.js": "ce3717fb9082428c3cfcb4cff9ca21fb6da27b75bcedb6b22b9534c1bb128ba2",
+    "src/use-data-app.js": "157fe9e1c0442dcaaa926e683cf53c7c026977e2f6705a9fd39aab03635abffe",
     "src/use-inline-editing.js": "4c4e250b34fcc57299d7c892bededbec648df7b221cc5004b85ae39f72ebf25e",
     "src/use-presentation.js": "ec18522ceaa5910ec443b43d3a829b116c249f068b57f2d9f307647f75cc8b6e",
     "src/use-section-filters.js": "470c762f4a7f632a149a1569a847109357e5fa99045fa3eefc9f7cb6adc7dd2a",

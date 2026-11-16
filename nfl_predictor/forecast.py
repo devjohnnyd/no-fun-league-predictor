@@ -25,7 +25,7 @@ def contributions(artifact, frame):
                   key=lambda r: abs(r["log_odds_home"]), reverse=True)[:6]
 
 
-def issue(dataset_path, venues_path, research_path, prepared_path, output, final=False, now=None, verify_live=True, market_path=None, totals_model_path=None):
+def issue(dataset_path, venues_path, research_path, prepared_path, output, final=False, now=None, verify_live=True, market_path=None, totals_model_path=None, card_path=None):
     output = Path(output)
     if output.exists():
         raise FileExistsError(output)
@@ -38,6 +38,17 @@ def issue(dataset_path, venues_path, research_path, prepared_path, output, final
     now = now or datetime.now(timezone.utc)
     imported_quotes = csv_quotes(market_path) if market_path else []
     totals_model = read_json(totals_model_path) if totals_model_path else None
+    card = read_json(card_path) if card_path else None
+    if card:
+        if (card["season"], card["week"]) != (prepared["season"], prepared["week"]):
+            raise ValueError("Brochure and forecast season/week differ")
+        relevant = {str(row["event_id"]) for row in card["games"]}
+        if not totals_model and any(str(entry["event_id"]) in relevant and entry["game"]["state"] == "pre" for entry in prepared["games"]):
+            raise ValueError("Weekly over/under games require --totals-model")
+        # The full card can include completed games absent from this prepared batch;
+        # validate each released matchup below instead of requiring its presence.
+        if len(card["games"]) != 3 or len(relevant) != 3:
+            raise ValueError("A weekly brochure card requires exactly three distinct games")
     if totals_model and (totals_model["source_sha256"] != report["source_sha256"] or
                          totals_model["training_cutoff"] != {"season": prepared["season"], "before_week": prepared["week"]}):
         raise ValueError("Totals model dataset, venues or cutoff differ from the prepared forecast")
@@ -122,6 +133,10 @@ def issue(dataset_path, venues_path, research_path, prepared_path, output, final
             blocked.append({"event_id": forecast["espn_id"], "reasons": ["Kickoff passed while calculating the forecast"]})
         else:
             forecast["market"] = aligned_consensus(forecast["market"].get("quotes", []), released_at.isoformat(), forecast["kickoff"])
+            selection = next((row for row in card["games"] if str(row["event_id"]) == str(forecast["espn_id"])), None) if card else None
+            if selection:
+                from .totals import saved_total_pick
+                forecast["total_pick"] = saved_total_pick(card, selection, forecast, released_at.isoformat())
             still_pregame.append(forecast)
     forecasts = still_pregame
     result = {"version": "4.0.0", "as_of": released_at.date().isoformat(), "issued_at": released_at.isoformat(),
@@ -130,6 +145,7 @@ def issue(dataset_path, venues_path, research_path, prepared_path, output, final
               "prepared_sha256": sha256(prepared_path), "issue_time_source": live_receipt,
               "market_import_sha256": sha256(market_path) if market_path else None,
               "totals_model_sha256": sha256(totals_model_path) if totals_model_path else None,
+              "card_sha256": sha256(card_path) if card_path else None,
               "attribution": engine.dataset["attribution"], "scenario_policy": "Conditional sensitivities; no arbitrary probabilities assigned to questionable availability"}
     # A draft with zero released predictions must never masquerade as a batch.
     write_new(output / ("forecast.json" if forecasts else "blocked.json"), result)

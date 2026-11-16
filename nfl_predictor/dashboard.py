@@ -70,16 +70,22 @@ def week_payload(manifest, metadata, batches, dataset=None, card=None):
             "updatedAt": source_time,
         })
     rows.sort(key=lambda r: (r["kickoff"], r["eventId"]))
-    from .totals import card_rows
+    from .totals import card_rows, total_forecasts
     if card and (card.get("season"), card.get("week")) != (manifest["season"], manifest["week"]):
         raise ValueError("Brochure is for a different season/week")
-    brochure_rows = card_rows(card, manifest["games"], forecasts)
+    brochure_rows = card_rows(card, manifest["games"], total_forecasts(batches))
+    season_schedule = {}
+    for game in dataset["schedule"] if dataset else []:
+        if game["season"] == manifest["season"] and game.get("espn"):
+            season_schedule.setdefault(str(game["week"]), []).append({"eventId": str(game["espn"]), "homeCode": game["home_team"], "awayCode": game["away_team"]})
     return {"title": "No Fun League", "generatedAt": manifest["retrieved_at"], "buildStatus": "creating",
+            "seasonSchedule": season_schedule,
             "period": {"season": manifest["season"], "week": manifest["week"]},
             "queries": {"brochure": {"rows": clean(brochure_rows), "source": {
                 "label": "Three weekly brochure totals", "provider": "User-provided card / ESPN results / experimental totals model",
                 "executedAt": manifest["retrieved_at"], "evidenceFlow": [
                     {"title": "Printed lines", "detail": card.get("source") if card else "Awaiting the user's three games and exact printed lines."},
+                    {"title": "Your selections", "detail": "User-reported choices are scored separately from model predictions. A report made after kickoff is labeled and never treated as a timestamped model pick."},
                     {"title": "Prediction timing", "detail": "Only a saved pregame total-points projection and a brochure line received before kickoff can count as a prediction. Historical results are not backfilled picks."},
                     {"title": "Settlement", "detail": "Compare final combined score to the printed total. Whole-point pushes stay separate; actual contest terms govern settlement."}]}},
                         "matchups": {"rows": clean(rows), "source": {
@@ -87,6 +93,7 @@ def week_payload(manifest, metadata, batches, dataset=None, card=None):
                 "executedAt": manifest["retrieved_at"], "url": manifest.get("scoreboard_source", {}).get("url"),
                 "evidenceFlow": [
                     {"title": "Scores", "detail": "Public ESPN NFL scoreboard; season and week are validated. Only completed games count toward results."},
+                    {"title": "Market totals", "detail": "Timestamped ESPN-listed provider quotes. First observed means the first quote this tracker captured, not the market opening line. Movement compares the same provider. No line is invented for games without a saved quote. Market picks and fixed brochure lines remain separate."},
                     {"title": "Picks", "detail": "Saved pre-kickoff model snapshots; original picks remain separate from later revisions. Refreshing scores never regenerates predictions."},
                     {"title": "Branding", "detail": "Official team logos retrieved from NFL.com. Team names/colors and venues are checked against ESPN team metadata."},
                     {"title": "Travel", "detail": "Home-clock kickoff uses IANA time zones on the game date and city-level venue coordinates. It is a proxy, not observed acclimation."}],

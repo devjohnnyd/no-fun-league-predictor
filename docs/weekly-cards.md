@@ -1,4 +1,18 @@
-# Three weekly over/under games
+# Weekly over/under tracking
+
+Every NFL game has its own market-total selection, including Thursday and other non-Sunday games. The optional three-game printed card remains a separate fixed-line contest view. No brochure is required for the full slate.
+
+The week selector loads any regular-season week from the reviewed season schedule. Each game shows its available provider total, first observed total, same-provider movement, scoring projection, latest line analysis, original tracked market pick and eventual result. Details include timestamped quote history and the projection's issue time. Missing quotes and forecasts stay unavailable; completed games never receive retrospective picks.
+
+**First observed** means the first quote this tracker captured, not the market opening line. Movement compares the same provider; the first model pick retains its own line even if the provider changes. Pregame observations and analyses are appended to `work/tracker/lines.sqlite3`. Preserve/back up this local file to retain tracking history. The original pick is settled against its saved line; pushes and pending games stay separate. Provider update time is unknown. New line or model revisions never rewrite an earlier selection.
+
+**Refresh data & analysis** fetches scores/lines immediately, then starts one background job: download current-season public statistics, rebuild with the historical source bundle, refresh QBs/injuries/staff/weather, fit chronological winner and total models, and save new pregame revisions. Progress and blocking reasons appear in the UI. One-minute score/line polling does not automatically retrain. Full refresh requires `serve --history-bundle data/raw/v4-2026-11-15` (or your actual historical source bundle; repeat the flag for additional bundles). Raw downloads, quote history and immutable refresh runs remain local and ignored by Git. Incomplete preceding-week statistics, missing required evidence, stale inputs and passed kickoffs block new picks while preserving existing selections and updated quotes.
+
+## Your Week 10 choices
+
+On November 16 you reported choosing **Over on all three** printed games. They are recorded with the actual report timestamp; the original placement time is unknown. Your record is **1–2**: MIN/GB and SEA/LV lost; PIT/CIN won. The model has **zero** picks for that printed card. Your choices carry no invented probabilities.
+
+## Optional three-game printed card
 
 Each week the user supplies the three matchups and their exact printed totals, usually from a brochure photo. They choose the games; the model does not automatically select three. Preserve the printed lines even if online prices differ.
 

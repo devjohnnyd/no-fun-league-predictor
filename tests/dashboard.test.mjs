@@ -1,12 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { filterGames, gameSummary, orderedGames, sourceAgeLabel, validateMatchupRefresh } from "../web/src/content/dashboard/football.mjs";
+import { filterGames, gameSummary, orderedGames, sourceAgeLabel, totalRecord, validateMatchupRefresh } from "../web/src/content/dashboard/football.mjs";
 
 const rows = [
   { eventId: "1", state: "post", kickoff: "2026-11-15T18:00Z", homeName: "Jets", awayName: "Bills", homeCode: "NYJ", awayCode: "BUF", slateEligible: true, originalCorrect: true, pickProbability: .75 },
   { eventId: "2", state: "pre", kickoff: "2026-11-17T01:15Z", homeName: "Ravens", awayName: "Chargers", homeCode: "BAL", awayCode: "LAC", slateEligible: true, originalCorrect: null, pickProbability: .64 },
   { eventId: "3", state: "post", kickoff: "2026-11-13T01:15Z", homeName: "Giants", awayName: "Commanders", homeCode: "NYG", awayCode: "WSH", slateEligible: false, originalCorrect: null, pickProbability: null },
 ];
+
+test("total records separate user picks, model abstentions, pushes and pending games", () => {
+  const totals = [
+    { userPick: "Over", userCorrect: false, correct: true, actualOutcome: "Under", analysis: { lean: "Under" } },
+    { userPick: "Over", userCorrect: true, correct: null, actualOutcome: "Over", analysis: null },
+    { userPick: "Over", userCorrect: null, correct: null, actualOutcome: "Push", analysis: { lean: "Over" } },
+    { userPick: null, userCorrect: null, correct: null, actualOutcome: null, analysis: { lean: "Under" } },
+    { userPick: null, userCorrect: null, correct: null, actualOutcome: "Over", analysis: { lean: "Even" } },
+  ];
+  assert.deepEqual(totalRecord(totals), { selections: 3, wins: 1, losses: 0, pushes: 1, pending: 1, unavailable: 1, abstentions: 1 });
+  assert.deepEqual(totalRecord(totals, "user"), { selections: 3, wins: 1, losses: 1, pushes: 1, pending: 0, unavailable: 2, abstentions: 0 });
+});
 
 test("filters intersect and clearing them restores the full population", () => {
   assert.equal(filterGames(rows, { search: "BUF" }).length, 1);

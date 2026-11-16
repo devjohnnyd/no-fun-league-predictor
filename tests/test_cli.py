@@ -14,7 +14,7 @@ class CliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "manifest.json"
             path.write_text(json.dumps({"games": [{"event_id": "done", "state": "post"},
-                                                  {"event_id": "next", "state": "pre"}]}))
+                                                  {"event_id": "next", "state": "pre", "slate_eligible": False}]}))
             with patch("sys.argv", ["nfl-predictor", "check", "--manifest", str(path)]), \
                  patch("nfl_predictor.cli.check_pregame", return_value={"ready": True}) as check, \
                  contextlib.redirect_stdout(io.StringIO()):
