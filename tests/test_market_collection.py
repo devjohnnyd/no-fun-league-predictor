@@ -8,6 +8,7 @@ from unittest.mock import Mock
 
 from nfl_predictor.line_tracking import LineTracker
 from nfl_predictor.market_collection import MarketCollection, active_weeks, collection_interval
+from nfl_predictor.sources import games_from_scoreboard
 
 UTC = timezone.utc
 
@@ -117,6 +118,20 @@ class MarketCollectionTests(unittest.TestCase):
         self.collector.tick()
         self.assertEqual(self.feed.get.call_count,3)
         self.assertTrue(self.payload()["queries"]["matchups"]["rows"][0]["marketTotal"]["correct"])
+
+    def test_postponed_game_does_not_finish_the_week(self):
+        # ESPN reports postponements as "post" without completion; the parser must keep them unresolved.
+        event = {"id":"1","date":self.game["kickoff"],"competitions":[{"status":{"type":{
+            "state":"post","completed":False,"shortDetail":"Postponed"}},"competitors":[
+            {"homeAway":"home","team":{"abbreviation":"BAL","id":"33"}},{"homeAway":"away","team":{"abbreviation":"LAC","id":"24"}}]}]}
+        state = games_from_scoreboard({"events":[event],"week":{"number":10}})[0]["state"]
+        self.assertEqual(state,"unknown")
+        self.now = datetime(2026,11,16,19,30,tzinfo=UTC)
+        self.game.update(state=state)
+        self.row.update(state=state)
+        self.collector.tick()
+        self.assertNotEqual(self.status()["state"],"complete")
+        self.assertIsNotNone(self.status()["nextCheckAt"])
 
     def test_lease_prevents_another_process_polling_and_recovers_after_expiry(self):
         other = MarketCollection(self.manager,self.root/"polls.db",lambda:self.now)

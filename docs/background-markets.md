@@ -59,6 +59,10 @@ by default it follows `NFL_AUTOMATION_ENABLED`. For market-only local testing,
 set preparation to `0` and market collection to `1`, with an isolated state path.
 Set both to `0` for previews without background provider requests.
 
+The hosted API starts the collector. The local `python -m nfl_predictor serve`
+command does not, so its dashboard shows **Background lines · Off**; local line
+history then grows only from dashboard reads and manual refreshes.
+
 GET `/nfl/api/refresh` returns `marketCollection` alongside preparation status.
 The collector never trains models. Fresh line analysis still uses the saved
 projection's actual issuance time; refreshing a line does not make model inputs
