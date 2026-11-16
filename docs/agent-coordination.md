@@ -4,21 +4,21 @@ Two coding agents (Codex and Claude) work in this repository and in `C:\Projects
 
 Last updated: 2026-11-16 by Codex.
 
-## Snapshot at 2026-11-16 ~14:40 ET
+## Snapshot at 2026-11-16 ~15:31 ET
 
 | Repo | Branch | HEAD | Working tree | Deployed |
 | --- | --- | --- | --- | --- |
-| no-fun-league-predictor | `main` only, even with `origin/main` | `e923004` | clean (before this file) | engine `8402bdb` via the johnny-ai bundle |
-| johnny-ai | `main` only, even with `origin/main` | `240be27` | clean | API bundle pins predictor `8402bdb`; `/nfl/` page via SWA |
+| no-fun-league-predictor | `main` | `021e11e` feature, plus this handoff | feature committed; handoff being committed | engine `8402bdb` via the johnny-ai bundle |
+| johnny-ai | `main`, one local commit ahead of `origin/main` | `1f58bdd` local only | clean | API bundle pins predictor `8402bdb`; production host remains `240be27` |
 
-No stashes, no extra worktrees, no feature branches. `e923004` changes only tests and docs, so the deployed `8402bdb` bundle is behaviorally current and needs no redeploy.
+The performance feature is ready for review and is not deployed. Host commit `1f58bdd` intentionally remains local because pushing its `web/**` change would trigger deployment before bundle review.
 
 ## Agents
 
 ### Codex
 
 - **Task:** season performance page. Codex accepts the proposed implementation and deployment role; the overall split remains **PROPOSED** pending devjohnnyd's confirmation.
-- **Status:** read-only groundwork complete: inspected existing batch scoring, original-pick tracking and line history. Feature implementation has not started. This handoff changes documentation only.
+- **Status:** implementation complete and ready for Claude review. Predictor feature `021e11e`; host integration `1f58bdd` (local only). No bundle regeneration or deployment performed. Active implementation edit locks below are released; coordinate any new shared-file edits.
 - **Owns (PROPOSED):**
   - New performance module(s), tests and docs it creates (for example `nfl_predictor/performance.py`, `tests/test_performance.py`, `docs/performance.md`, a new `web/src/content/performance/` folder).
   - Edits to the shared files listed below that the performance page needs.
@@ -31,7 +31,7 @@ No stashes, no extra worktrees, no feature branches. `e923004` changes only test
   - Predictor integration: `nfl_predictor/server.py`, `web/src/content/dashboard/DashboardContent.jsx`, `web/src/content/dashboard/dashboard.css`, and `README.md` as needed.
   - Hosted integration: johnny-ai `api/app/nfl.py`, `api/tests/test_nfl.py`, and generated `api/nfl_bundle/**`. A separate hosted route, if needed, will be announced before editing `web/src/pages/nfl/**`.
   - Existing scoring helpers (`nfl_predictor/tracking.py`, `nfl_predictor/line_tracking.py`, `nfl_predictor/model.py`) are read-only dependencies unless a specific integration change is logged first.
-- **Next handoff:** finalize the file-level implementation scope in this log before touching shared code; provide the predictor commit and validation results to Claude for the proposed review before bundling. Record any deployment's predictor/host commits and scope here first.
+- **Next handoff:** Claude reviews `b21f886..021e11e` in predictor and `240be27..1f58bdd` in the local host checkout. After review, Codex addresses findings, regenerates the pinned bundle, validates the integrated host, and records deployment scope before release. Do not push the host page or regenerate its bundle during review.
 
 ### Claude
 
@@ -78,6 +78,16 @@ One deployer at a time: **Codex**. Claude does not run `sync_portfolio`, zip-dep
 ## Handoff log
 
 Newest first.
+
+- **2026-11-16 Codex - ready for review:** Implemented season performance in predictor `021e11e` and host integration `1f58bdd` (host commit is local only; do not push it before review). All commits use the verified repository-local `devjohnnyd` identity. Review ranges: predictor `b21f886..021e11e`; host `240be27..1f58bdd`.
+  - Behavior: original winner forecasts scored once across immutable batches; first tracked directional market total per game; saved exact-line printed-card model choices only; user choices separate, with late-report flags. Weekly records, Brier/log loss, confidence bands and inspectable pick ledger. Read-only results refresh neither enriches quotes nor trains models. Empty weeks remain unscored; failures retain earlier result receipts with warnings.
+  - Validation: 140 Python predictor tests and 12 Node tests pass; Data source build verifies all 376 protected files. Host: 13 API tests pass; Astro checks 12 files without errors/warnings/hints and builds all three pages. Browser checks: all four record types, empty week, pending filter, original/revised details, native source menu, games navigation and 390px/320px layouts (no page overflow). Build lifecycle is complete. Scoped runtime helper changes only `src/use-data-app.js` and its generated integrity hash.
+  - Local preview: `http://127.0.0.1:4174/?page=performance`; ignored `work/preview_performance.py` uses an isolated SQLite backup. At verification, originals were 9-3 with one pending; printed user choices were 1-2, all reported after kickoff. Performance reads left 210 quote observations unchanged. Screenshot is in the Codex workspace as `season-performance-preview.jpg`.
+  - Claude: review correctness, pregame timing/deduplication, cache/source timestamps and the minimal loader/host changes; rerun checks into new ignored `work/` folders. Record findings and verdict in your section and this log. Leave frozen files, production state, generated bundle and deployment untouched. Predictor feature is being pushed for review; host push/bundle/release await this handoff. Implementation edit reservations are now released.
+
+- **2026-11-16 Codex — scope addition:** Reserving `.github/workflows/tests.yml` solely to include the new performance Node tests in CI. The scoped Data runtime helper also updates `web/protected-runtime.json` for the single authorized `src/use-data-app.js` change; no other protected implementation is being edited.
+
+- **2026-11-16 Codex — active performance implementation:** Reserving new `nfl_predictor/performance.py`, `tests/test_performance.py`, `tests/performance.test.mjs`, `docs/performance.md`, and `web/src/content/performance/**`. Shared edits reserved for this feature: `nfl_predictor/server.py` (read-only performance endpoint/cache), `nfl_predictor/line_tracking.py` (streaming original-selection reader only), `web/src/content/dashboard/DashboardContent.jsx`/`dashboard.css` (view navigation), `web/src/data.json` (build lifecycle), and `README.md`. A minimal protected edit to the existing NFL extension in `web/src/use-data-app.js` will load and validate source-backed season queries without altering native Data behavior; it will use the scoped authorization helper and runtime verifier. Hosted integration reservation: johnny-ai `api/app/nfl.py`, `api/tests/test_nfl.py`, and new `web/src/pages/nfl/performance.astro`; generated bundle/sync work waits for the review handoff. No forecast-generation/model changes, frozen data edits, or production-state writes are planned. Claude: please leave these files unchanged during implementation; review the committed diff and validation evidence at the next handoff before bundling/deployment.
 
 - **2026-11-16 Codex:** Ran `git pull --ff-only origin main`; confirmed `e02ffbf` is present and authored by `devjohnnyd <189306222+devjohnnyd@users.noreply.github.com>`. Filled in Codex's proposed performance-page scope and anticipated files above. No feature/shared-code edit lock is claimed yet. Only this coordination file is being changed/staged; application code, hosted state and the johnny-ai bundle remain untouched. Validation: reviewed the Markdown diff and repository status; no code tests or redeployment are needed for this documentation-only update.
   - CI readback: `e02ffbf` passed the [Tests workflow](https://github.com/devjohnnyd/no-fun-league-predictor/actions/runs/43943231020).
