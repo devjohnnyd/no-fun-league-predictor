@@ -2,7 +2,7 @@
 
 Two coding agents (Codex and Claude) work in this repository and in `C:\Projects\personal\johnny-ai`, both as `devjohnnyd`. This file records who owns what so neither overwrites the other. Assignments marked **PROPOSED** are not agreed until the owner (devjohnnyd) confirms them; change the marker to **AGREED** when confirmed.
 
-Last updated: 2026-11-16 by Codex.
+Last updated: 2026-11-16 by Claude.
 
 ## Snapshot at 2026-11-16 ~15:31 ET
 
@@ -36,7 +36,7 @@ The performance feature is ready for review and is not deployed. Host commit `1f
 ### Claude
 
 - **Task:** review and verification; no feature work in flight.
-- **Status:** idle. No uncommitted changes in either repository.
+- **Status:** season performance review complete: **approved for bundling**, with four non-blocking follow-ups (see the handoff log). No code edits made; only this file changed.
 - **Owns (PROPOSED):**
   - This file (each agent may edit its own section and the handoff log).
   - Read-only review of each Codex commit before it is bundled and deployed.
@@ -45,7 +45,8 @@ The performance feature is ready for review and is not deployed. Host commit `1f
 - **Completed:**
   - Review of `d8c9a00`: no blocking defects; both suspected edge cases were already guarded.
   - Regression test `test_postponed_game_does_not_finish_the_week` and the local-collection note in `docs/background-markets.md`. Codex committed and pushed these as `e923004`; CI passed.
-- **Checks performed:** 129 Python tests and 9 Node dashboard tests pass (Python 3.13 venv outside the repo); GitHub Actions green through `e923004`.
+  - Review of season performance (predictor `b21f886..021e11e`, host `240be27..1f58bdd`): approved, non-blocking follow-ups logged.
+- **Checks performed:** 140 Python tests and 12 Node tests pass at `da2e197` (Python 3.13 venv outside the repo); browser QA of Codex's local preview on port 4174.
 
 ## Shared files (coordinate before editing)
 
@@ -78,6 +79,15 @@ One deployer at a time: **Codex**. Claude does not run `sync_portfolio`, zip-dep
 ## Handoff log
 
 Newest first.
+
+- **2026-11-16 Claude - season performance review: APPROVED for bundling (non-blocking follow-ups below).** Reviewed predictor `b21f886..021e11e` (plus handoff `da2e197`) and local host `240be27..1f58bdd`. No files edited except this one.
+  - Verified correct: one earliest winner forecast per game, scored at its original probability, and later revisions shown separately. The first directional market pick per game comes from `original_selections`, using the same order (`observed_at`, `book_id`) as `LineTracker.enrich`'s original pick. Market quotes after kickoff are rejected. Projections issued after their line was captured are rejected. Printed-model picks require a validated saved `total_pick`. User picks have no probability, and late reports are flagged. Ties, pushes, pending, abstained, no-pick and unavailable rows stay separate, and an empty record shows null accuracy. Season Brier and log loss are game-weighted, and the browser validator reconciles them with the weekly rows. The read-only path never calls `enrich` or appends quotes. Host route logs failures and returns 503; Astro page is unlisted/noindex.
+  - Checks: 140 Python and 12 Node tests pass. Browser checks on `127.0.0.1:4174`: winner record 9-3, 75.0%, Brier 0.192 (matches README 0.191743), 1 pending; market totals 1 recorded, 13 without a pick; user card picks 1-2, all 3 flagged late. Pick-detail dialog renders the card source text. No horizontal overflow at 320px.
+  - Follow-up 1 (low, correctness edge): `performance.py:252` always validates winner forecasts against the **dataset** kickoff, but `season_payload` uses the ESPN kickoff once results load (and `:181` falls back to the dataset kickoff when a week's results are unavailable). If a game is moved later (a flex) and the dataset is not refreshed, a forecast or quote taken between the two kickoff times makes the whole endpoint return 503. Use one kickoff source, or the later of the two, for the pregame checks.
+  - Follow-up 2 (low, docs vs code): `performance.py:38` bounds date-only issue times at 23:59:59 **UTC** (6:59 PM ET), so a US-evening release on that date is not covered. `docs/performance.md` calls this conservative. Consider end of day `America/New_York`. No current effect: the date-only `2026-11-10` batch precedes every Week 10 kickoff.
+  - Follow-up 3 (low, diagnosability): `performance.py:273` catches every exception as "result provider unavailable" without logging, and the local `server.py:158` 503 path does not log either. Because any single invalid row fails the whole report (by design), add `log.exception` so the failing row can be traced. The hosted route already logs.
+  - Follow-up 4 (nit): the pick-detail dialog shows `Model: Experimental totals / user choice` for user-reported picks. "User-reported choice" would be clearer there.
+  - Deployment note: hosted Games ↔ Performance links send the top frame to `www.johnnyd.ai/nfl/performance/`, which exists only after the SWA push. Deploy the API bundle and push host `web/**` together; neither order breaks existing pages, but the link 404s in between.
 
 - **2026-11-16 Codex - ready for review:** Implemented season performance in predictor `021e11e` and host integration `1f58bdd` (host commit is local only; do not push it before review). All commits use the verified repository-local `devjohnnyd` identity. Review ranges: predictor `b21f886..021e11e`; host `240be27..1f58bdd`.
   - Behavior: original winner forecasts scored once across immutable batches; first tracked directional market total per game; saved exact-line printed-card model choices only; user choices separate, with late-report flags. Weekly records, Brier/log loss, confidence bands and inspectable pick ledger. Read-only results refresh neither enriches quotes nor trains models. Empty weeks remain unscored; failures retain earlier result receipts with warnings.
