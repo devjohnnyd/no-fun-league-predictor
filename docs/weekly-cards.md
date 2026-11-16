@@ -1,0 +1,35 @@
+# Three weekly over/under games
+
+Each week the user supplies the three matchups and their exact printed totals, usually from a brochure photo. They choose the games; the model does not automatically select three. Preserve the printed lines even if online prices differ.
+
+`data/cards/2026-week10.json` transcribes the attached Week 10 William Hill NFL Progressive Card:
+
+| Game | Printed line | Final combined score | Result |
+|---|---:|---:|---|
+| MIN at GB | 42.5 | 40 | Under |
+| SEA at LV | 43.5 | 34 | Under |
+| PIT at CIN | 47.5 | 56 | Over |
+
+The image was provided after those games finished. `received_at` is unknown, and there are no saved pregame total-points forecasts for them. They are **historical results**, with zero evaluated model O/U picks, not three retroactive wins or losses. The brochure's reverse/settlement terms were not supplied; this tracker compares combined final score to the printed number and does not implement pool payout or entry rules.
+
+For a future week, create a new `data/cards/SEASON-weekWEEK.json` with `season`, `week`, exact offset-aware `received_at`, `source`, and exactly three distinct `games`, each containing `event_id`, `home`, `away`, `line`. Use ESPN event IDs and canonical team codes from the reviewed schedule. Verify the year/week, teams, half-point transcription and source before release. Do not invent a historical receipt timestamp. The dashboard/server defaults to the matching card file, or accepts `--card PATH`.
+
+## Separate total-points model
+
+```powershell
+python -m nfl_predictor research-totals --dataset data/snapshots/dataset-v4-2026-11-16.json.gz --venues data/snapshots/venues-v4-2026-11-15.json --season 2026 --week 10 --output work/new-totals-research
+```
+
+The winner model's probability does not predict a total. This separate ridge regression uses prior offense/defense/QB quality, pace, pass/explosive/sack tendencies and candidate weather/injury/body-clock context. Penalties are tuned on rolling 2024 MAE, families selected on 2025 MAE, and 2026 Weeks 1–9 labeled previously examined diagnostics. Tied NFL games still have valid total points and are included. Training-only imputation/standardization is retained.
+
+Out-of-week 2024 residuals produce an empirical integer-score distribution and 80% predictive range. The selected context model's 2025 interval coverage was **76.8%**, below nominal 80%; probabilities/ranges remain experimental. Historical brochure lines with reliable timestamps are unavailable, so total-score error does not establish over/under accuracy or a betting advantage.
+
+Add `--totals-model PATH/totals-model.json` to the normal `forecast` command after a fresh `prepare` and `check`. Hashes and cutoff must agree with winner research/preparation. It saves the total projection alongside each new pregame prediction. Week 10's Monday projection was saved before kickoff; it is not one of the three printed O/U games.
+
+When the brochure line and forecast both have valid pre-kickoff timestamps, the dashboard can show Over/Under probabilities and a lean. Half-point lines have no push; whole-point pushes are separate. The empirical distribution receives small category smoothing to avoid zero probabilities. Do not multiply three individual probabilities to claim a perfect-card probability; game dependence and pool rules are not modeled.
+
+```powershell
+python -m nfl_predictor score-card --card data/cards/2026-week10.json --forecast reports/2026-11-16-complete/monday-with-totals/forecast.json --results data/snapshots/week10-results-2026-11-16-morning.json --output work/new-card-score.json
+```
+
+Scoring uses exact saved forecasts and lines, rejects mismatched weeks and counts pushes, pending and unavailable predictions separately. Brier/log loss and pick accuracy condition on a non-push result. Save new weekly configuration and forecast/review files to Git; do not rewrite an earlier card to match outcomes.

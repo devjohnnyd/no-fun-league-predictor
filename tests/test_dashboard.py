@@ -1,0 +1,63 @@
+import copy
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+from nfl_predictor.dashboard import week_payload
+from nfl_predictor.server import WeekFeed
+from nfl_predictor.sources import games_from_scoreboard
+from nfl_predictor.storage import read_json
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class DashboardTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.metadata = read_json(ROOT / "data/snapshots/venues-v4-2026-11-15.json")
+        cls.batch = read_json(ROOT / "archive/session-2026-11-10/enhanced/model.json")
+        cls.manifest = read_json(ROOT / "data/snapshots/week10-results-2026-11-16T0155Z.json")
+
+    def test_full_week_and_original_record_are_preserved(self):
+        rows = week_payload(self.manifest, self.metadata, [self.batch])["queries"]["matchups"]["rows"]
+        self.assertEqual(len(rows), 14)
+        self.assertEqual(sum(r["originalCorrect"] is True for r in rows), 8)
+        self.assertEqual(sum(r["originalCorrect"] is False for r in rows), 3)
+        self.assertEqual(sum(r["pick"] is None for r in rows), 1)
+
+    def test_score_refresh_does_not_rewrite_the_original_pick(self):
+        later = copy.deepcopy(self.batch)
+        later["issued_at"] = "2026-11-11T12:00:00Z"
+        first = later["forecast"][0]
+        first["home_probability"] = 1 - first["home_probability"]
+        first["pick"] = first["home"] if first["home_probability"] >= .5 else first["away"]
+        result = week_payload(self.manifest, self.metadata, [self.batch, later])
+        row = next(r for r in result["queries"]["matchups"]["rows"] if r["eventId"] == first["espn_id"])
+        self.assertNotEqual(row["homeProbability"], row["originalHomeProbability"])
+        self.assertEqual(row["originalCorrect"], True)
+
+    def test_backdated_forecasts_cannot_be_displayed(self):
+        changed = copy.deepcopy(self.batch)
+        changed["issued_at"] = "2026-11-17T12:00:00Z"
+        with self.assertRaises(ValueError):
+            week_payload(self.manifest, self.metadata, [changed])
+
+    def test_live_feed_cache_is_bounded_and_errors_do_not_fake_freshness(self):
+        feed = WeekFeed(2026, 10, self.metadata, [self.batch], ttl=30)
+        with patch("nfl_predictor.server.fetch_week", return_value=self.manifest) as fetch:
+            first, second = feed.get(), feed.get()
+            self.assertEqual(fetch.call_count, 1)
+            self.assertEqual(first["generatedAt"], second["generatedAt"])
+        feed.updated = 0
+        with patch("nfl_predictor.server.fetch_week", side_effect=RuntimeError("Unavailable")):
+            with self.assertRaises(RuntimeError):
+                feed.get()
+        self.assertEqual(feed.cached["generatedAt"], self.manifest["retrieved_at"])
+
+    def test_completed_game_without_scores_is_rejected(self):
+        payload = {"events": [{"id": "1", "date": "2026-11-15T18:00Z", "competitions": [{
+            "status": {"type": {"state": "post", "completed": True}}, "competitors": [
+                {"homeAway": side, "team": {"id": "1", "abbreviation": side}}
+                for side in ("home", "away")]}]}]}
+        with self.assertRaises(ValueError):
+            games_from_scoreboard(payload)

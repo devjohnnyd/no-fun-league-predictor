@@ -1,0 +1,66 @@
+{
+  "season": 2026,
+  "week": 10,
+  "results_retrieved_at": "2026-11-16T13:18:16.347804+00:00",
+  "games": [
+    {
+      "eventId": "401873060",
+      "homeCode": "GB",
+      "awayCode": "MIN",
+      "line": 42.5,
+      "actualTotal": 40,
+      "actualOutcome": "Under",
+      "state": "post",
+      "projection": null,
+      "analysis": null,
+      "predictionStatus": "No pregame forecast recorded",
+      "source": "User-provided photo of William Hill NFL Progressive Card, Week 10, November 15-16 2026; printed totals transcribed visually. Exact photo receipt minute unavailable; recorded after these Sunday games finished.",
+      "lineReceivedAt": null,
+      "forecastIssuedAt": null,
+      "correct": null
+    },
+    {
+      "eventId": "401873062",
+      "homeCode": "LV",
+      "awayCode": "SEA",
+      "line": 43.5,
+      "actualTotal": 34,
+      "actualOutcome": "Under",
+      "state": "post",
+      "projection": null,
+      "analysis": null,
+      "predictionStatus": "No pregame forecast recorded",
+      "source": "User-provided photo of William Hill NFL Progressive Card, Week 10, November 15-16 2026; printed totals transcribed visually. Exact photo receipt minute unavailable; recorded after these Sunday games finished.",
+      "lineReceivedAt": null,
+      "forecastIssuedAt": null,
+      "correct": null
+    },
+    {
+      "eventId": "401873064",
+      "homeCode": "CIN",
+      "awayCode": "PIT",
+      "line": 47.5,
+      "actualTotal": 56,
+      "actualOutcome": "Over",
+      "state": "post",
+      "projection": null,
+      "analysis": null,
+      "predictionStatus": "No pregame forecast recorded",
+      "source": "User-provided photo of William Hill NFL Progressive Card, Week 10, November 15-16 2026; printed totals transcribed visually. Exact photo receipt minute unavailable; recorded after these Sunday games finished.",
+      "lineReceivedAt": null,
+      "forecastIssuedAt": null,
+      "correct": null
+    }
+  ],
+  "metrics": {
+    "games": 0,
+    "correct": 0,
+    "accuracy": null,
+    "brier": null,
+    "log_loss": null
+  },
+  "pushes": 0,
+  "unavailable_predictions": 3,
+  "pending": 0,
+  "policy": "Only timestamped pregame projections and lines count. Probabilities/metrics condition on no push; pushes and missing picks stay separate."
+}

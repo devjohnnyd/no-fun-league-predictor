@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from urllib.error import URLError
+import unicodedata
 
 from .freshness import timestamp
 
@@ -21,17 +23,29 @@ STATES = dict(item.split(":") for item in (
 def unique_venue_city(venue, geocoding):
     """Resolve an exact venue-city/country/state match, never the first search hit."""
     address = venue.get("address", {})
-    country = {"USA": "US", "United States": "US", "Germany": "DE",
+    country = {"USA": "US", "US": "US", "United States": "US", "Germany": "DE", "DE": "DE",
                "United Kingdom": "GB", "England": "GB", "Spain": "ES",
-               "Mexico": "MX", "Brazil": "BR"}.get(address.get("country"))
-    city = address.get("city", "").casefold()
+               "Mexico": "MX", "Brazil": "BR", "Ireland": "IE", "Australia": "AU", "France": "FR"}.get(address.get("country"))
+    normalized = lambda text: "".join(c for c in unicodedata.normalize("NFKD", text).casefold() if not unicodedata.combining(c))
+    city = normalized(address.get("city", ""))
     state = address.get("state")
-    region = STATES.get(state, state)
+    region = STATES.get(state, state) if country == "US" else None
     if not country or not city or (country == "US" and not region):
         raise ValueError("Venue city/country/state are incomplete")
     matches = [loc for loc in geocoding.get("results", [])
-               if loc.get("country_code") == country and loc.get("name", "").casefold() == city
+               if loc.get("country_code") == country and normalized(loc.get("name", "")) == city
                and (not region or loc.get("admin1") == region)]
+    if len(matches) > 1 and address.get("zipCode"):
+        postal = [loc for loc in matches if address["zipCode"] in (loc.get("postcodes") or [])]
+        if postal:
+            matches = postal
+    if len(matches) > 1:
+        administrative = [loc for loc in matches if loc.get("feature_code", "").startswith(("PPLA", "PPLC"))]
+        municipalities = [loc for loc in matches if loc.get("feature_code") == "PPL"]
+        if len(administrative) == 1:
+            matches = administrative
+        elif len(municipalities) == 1 and all(loc.get("feature_code") in {"PPL", "PPLX"} for loc in matches):
+            matches = municipalities
     if len(matches) != 1:
         raise ValueError("Venue city coordinates are missing or ambiguous")
     return matches[0]
@@ -54,8 +68,14 @@ def fetch_json(url, path):
     path = Path(path)
     if path.exists():
         raise FileExistsError(path)
-    with urlopen(Request(url, headers={"User-Agent": "NoFunLeaguePredictor/3.0"}), timeout=40) as response:
-        content = response.read()
+    for attempt in range(2):
+        try:
+            with urlopen(Request(url, headers={"User-Agent": "NoFunLeaguePredictor/4.0"}), timeout=40) as response:
+                content = response.read()
+            break
+        except (URLError, TimeoutError, OSError):
+            if attempt:
+                raise
     value = json.loads(content)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(content)
@@ -70,13 +90,25 @@ def games_from_scoreboard(payload):
         competitors = {c["homeAway"]: c for c in competition["competitors"]}
         status = competition.get("status", event.get("status", {})).get("type", {})
         home, away = competitors["home"], competitors["away"]
+        if status.get("completed"):
+            for competitor in (home, away):
+                if competitor.get("score") is None or isinstance(competitor.get("score"), bool) or int(competitor["score"]) < 0:
+                    raise ValueError("Completed game is missing a valid final score")
+        state = status.get("state", "unknown")
+        if state == "post" and not status.get("completed"):
+            state = "unknown"
         games.append({"event_id": str(event["id"]), "kickoff": event["date"],
                       "week": int(event.get("week", payload.get("week", {})).get("number", 0)),
                       "home": home["team"]["abbreviation"], "away": away["team"]["abbreviation"],
                       "home_id": str(home["team"]["id"]), "away_id": str(away["team"]["id"]),
                       "home_score": int(home.get("score", 0)) if status.get("completed") else None,
                       "away_score": int(away.get("score", 0)) if status.get("completed") else None,
-                      "completed": bool(status.get("completed")), "state": status.get("state", "unknown"),
+                      "completed": bool(status.get("completed")), "state": state,
+                      "home_live_score": int(home["score"]) if home.get("score") is not None else None,
+                      "away_live_score": int(away["score"]) if away.get("score") is not None else None,
+                      "clock": competition.get("status", event.get("status", {})).get("displayClock"),
+                      "period": competition.get("status", event.get("status", {})).get("period"),
+                      "status_detail": status.get("shortDetail") or status.get("detail"),
                       "venue": competition.get("venue", {}), "sources": {}})
     ids = [g["event_id"] for g in games]
     if len(ids) != len(set(ids)):

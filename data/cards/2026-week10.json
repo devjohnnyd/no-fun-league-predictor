@@ -1,0 +1,11 @@
+{
+  "season": 2026,
+  "week": 10,
+  "received_at": null,
+  "source": "User-provided photo of William Hill NFL Progressive Card, Week 10, November 15-16 2026; printed totals transcribed visually. Exact photo receipt minute unavailable; recorded after these Sunday games finished.",
+  "games": [
+    {"event_id": "401873060", "away": "MIN", "home": "GB", "line": 42.5},
+    {"event_id": "401873062", "away": "SEA", "home": "LV", "line": 43.5},
+    {"event_id": "401873064", "away": "PIT", "home": "CIN", "line": 47.5}
+  ]
+}

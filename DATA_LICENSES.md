@@ -1,0 +1,11 @@
+# Data and asset attribution
+
+Provider data and team marks retain their own rights. This repository does not assert a blanket software license over those materials or imply NFL/provider endorsement.
+
+- **FTN Data** — charting obtained through [nflverse](https://nflreadr.nflverse.com/reference/load_ftn_charting.html), originally [FTN Data](https://ftndata.com/). The feed is licensed **Creative Commons Attribution-ShareAlike 4.0** ([license](https://creativecommons.org/licenses/by-sa/4.0/)). Charting-derived fields in the v4 dataset, feature exports and research/forecast data are adaptations distributed under the same CC BY-SA 4.0 terms. Changes: join game/play identifiers; aggregate prior-game/team/QB charting; compute shrunk rates, matchup interactions and model inputs/results. Source receipts and field definitions are retained with data/code.
+- **nflverse contributors** — [nflverse-data](https://github.com/nflverse/nflverse-data), [nfldata](https://github.com/nflverse/nfldata) and nflfastR-derived play-by-play, schedules and player joins. PFR advanced statistics, snap/injury and NFL Next Gen Stats retain upstream attribution and applicable rights. Exact URLs, checksums and exclusions are in dataset `sources` and `quality`. Public accessibility does not establish unrestricted commercial redistribution rights.
+- **NFL and its teams** — official logos retrieved from [NFL.com teams](https://www.nfl.com/teams/). Exact asset URLs/hashes are in `data/snapshots/venues-v4-2026-11-15.json`. Marks belong to the NFL/respective teams, identify matchups, and are not project-created or covered by the charting license.
+- **ESPN** — public schedule, summaries, team metadata, depth and scores, plus publicly listed market quotes. No service guarantee or endorsement is implied.
+- **Open-Meteo and GeoNames** — [weather and geocoding](https://open-meteo.com/en/docs), under their stated attribution terms. City coordinates are distinguished from precise stadium observations.
+
+Raw bundles/caches are not committed. Small derived snapshots, pregame evidence and analysis exports preserve provenance for personal research. Review upstream terms before republishing provider data or marks beyond this use.

@@ -1,0 +1,88 @@
+import copy
+from pathlib import Path
+import unittest
+
+import numpy as np
+import pandas as pd
+
+from nfl_predictor.engine import FeatureEngine
+from nfl_predictor.storage import read_json
+from nfl_predictor.totals import card_rows, fit_total, line_analysis, predict_total, score_card, total_features
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class TotalsTests(unittest.TestCase):
+    def test_half_point_lines_have_no_push_and_probabilities_sum_to_one(self):
+        result = line_analysis({"total_samples": [40, 42, 43, 50]}, 42.5)
+        self.assertEqual(result["push_probability"], 0)
+        self.assertAlmostEqual(result["over_probability"] + result["under_probability"], 1)
+
+    def test_whole_point_push_is_separate(self):
+        result = line_analysis({"total_samples": [40, 42, 42, 50]}, 42)
+        self.assertGreater(result["push_probability"], 0)
+        self.assertAlmostEqual(sum(result[key] for key in ("over_probability", "under_probability", "push_probability")), 1)
+
+    def test_invalid_lines_fail(self):
+        for line in (float("nan"), -1, 42.25, 200):
+            with self.assertRaises(ValueError):
+                line_analysis({"total_samples": [40, 50]}, line)
+
+    def test_brochure_photo_lines_and_actual_results_are_not_backfilled_picks(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        games = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")["games"]
+        rows = card_rows(card, games, {})
+        self.assertEqual([row["line"] for row in rows], [42.5, 43.5, 47.5])
+        self.assertEqual([row["actualTotal"] for row in rows], [40, 34, 56])
+        self.assertEqual([row["actualOutcome"] for row in rows], ["Under", "Under", "Over"])
+        self.assertTrue(all(row["correct"] is None and row["analysis"] is None for row in rows))
+
+    def test_card_requires_three_distinct_matching_games(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        card["games"][1] = card["games"][0]
+        with self.assertRaises(ValueError):
+            card_rows(card, [], {})
+
+    def test_historical_brochure_is_not_scored_as_three_losses(self):
+        result = score_card(read_json(ROOT / "data/cards/2026-week10.json"), [], read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json"))
+        self.assertEqual(result["metrics"]["games"], 0)
+        self.assertEqual(result["unavailable_predictions"], 3)
+
+    def test_pregame_card_uses_saved_distribution_and_separates_a_push(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        card["received_at"] = "2026-11-13T12:00:00Z"
+        card["games"][0]["line"] = 40.
+        results = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")
+        batch = {"issued_at": "2026-11-13T13:00:00Z", "forecast": [
+            {"espn_id": row["event_id"], "home": row["home"], "away": row["away"], "total_projection": {"total_samples": [30, 35, 40, 45, 50]}} for row in card["games"]]}
+        result = score_card(card, [batch], results)
+        self.assertEqual(result["metrics"]["games"], 2)
+        self.assertEqual(result["pushes"], 1)
+
+    def test_late_brochure_line_cannot_become_a_pregame_lean(self):
+        card = read_json(ROOT / "data/cards/2026-week10.json")
+        card["received_at"] = "2026-11-16T14:00:00Z"
+        games = read_json(ROOT / "data/snapshots/week10-results-2026-11-16-morning.json")["games"]
+        forecasts = {row["event_id"]: {"home": row["home"], "away": row["away"], "total_projection": {"total_samples": [30,40,50]}} for row in card["games"]}
+        self.assertTrue(all(row["analysis"] is None for row in card_rows(card, games, forecasts)))
+
+    def test_regression_accepts_tied_nfl_games_and_keeps_preprocessing_fixed(self):
+        train = pd.DataFrame({"x": [1., 2., 3., 4.], "total": [40, 42, 38, 44]})
+        model = fit_total(train, ["x"], 60.)
+        means = copy.deepcopy(model["mean"])
+        values = predict_total(model, pd.DataFrame({"x": [1000., np.nan]}))
+        self.assertTrue(np.isfinite(values).all())
+        self.assertEqual(model["mean"], means)
+
+    def test_target_score_and_future_stats_cannot_change_total_features(self):
+        data = read_json(ROOT / "data/snapshots/dataset-v4-2026-11-16.json.gz")
+        venues = read_json(ROOT / "data/snapshots/venues-v4-2026-11-15.json")
+        game = next(g for g in data["schedule"] if g["season"] == 2026 and g["week"] == 9)
+        expected = total_features(FeatureEngine(data, venues), game)
+        altered = copy.deepcopy(data)
+        for row in altered["team_games"]:
+            if (row["season"], row["week"]) >= (2026, 9):
+                row["plays"] += 100000
+                row["epa"] += 100000
+        changed_game = {**game, "home_score": 1000, "away_score": 1000}
+        self.assertEqual(expected, total_features(FeatureEngine(altered, venues), changed_game))
