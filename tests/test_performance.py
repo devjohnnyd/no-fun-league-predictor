@@ -52,7 +52,7 @@ class PerformanceTests(unittest.TestCase):
 
     def test_originals_are_counted_once_and_later_revisions_do_not_rewrite_metrics(self):
         revised = copy.deepcopy(self.batch)
-        revised["issued_at"] = "2026-09-02T00:00:00Z"
+        revised["issued_at"] = "2026-09-02T12:00:00Z"
         for row in revised["forecast"]:
             row.update(pick=row["away"],home_probability=.1)
         data = self.payload([revised,self.batch,self.batch])
@@ -64,6 +64,10 @@ class PerformanceTests(unittest.TestCase):
         self.assertEqual(self.rows(data)[0]["issuePrecision"],"date")
         self.assertEqual(self.rows(data)[0]["revisionCount"],1)
         self.assertEqual(self.rows(data)[0]["latestPick"],"LAC")
+
+    def test_date_only_batches_are_bounded_at_the_end_of_the_eastern_day(self):
+        from nfl_predictor.performance import issue_time
+        self.assertEqual(issue_time({"as_of":"2026-11-10"})[1],datetime(2026,11,11,4,59,59,999999,tzinfo=timezone.utc))
 
     def test_market_scores_condition_on_no_push_and_separate_other_outcomes(self):
         result = self.metric(self.payload(observations=self.observations()),"market")

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
@@ -98,3 +99,14 @@ class AnalysisRefreshTests(unittest.TestCase):
             second = AnalysisRefresh(Mock(), [], Path(folder)/"refreshes")
             self.assertEqual(second.start(11)["state"], "blocked")
             self.assertEqual(read_json(Path(folder)/"refresh-budget.json")["count"], 1)
+
+    def test_manual_runs_cannot_exhaust_the_scheduled_budget(self):
+        with TemporaryDirectory() as folder, patch("nfl_predictor.refresh_job.threading.Thread"):
+            budget = Path(folder)/"refresh-budget.json"
+            today = datetime.now(timezone.utc).date().isoformat()
+            budget.write_text(json.dumps({"date": today, "count": 0, "manual": 4, "last_started": 0}), encoding="utf-8")
+            job = AnalysisRefresh(Mock(), [], Path(folder)/"refreshes")
+            self.assertIn("4 manual", job.start(11, manual=True)["message"])
+            self.assertEqual(job.start(11)["state"], "running")
+            self.assertEqual(read_json(budget)["count"], 1)
+            self.assertEqual(read_json(budget)["manual"], 4)

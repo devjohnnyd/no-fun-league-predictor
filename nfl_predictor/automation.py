@@ -123,8 +123,12 @@ class WeeklyAutomation:
                     finished = active["run_id"] == status.get("runId") and status["state"] == "complete" and not status.get("blockedGames")
                     spec = json.loads(active["spec"])
                     message = status.get("message", "") if active["run_id"] == status.get("runId") else "Interrupted preparation; retrying after restart."
-                    db.execute("UPDATE jobs SET state=?,next_at=?,completed_at=?,message=? WHERE key=?",
-                               ("complete" if finished else "waiting", seconds + (3600 if spec["mode"] == "full" else 600), seconds, message, active["key"]))
+                    if not finished and status.get("releasedGames") and status.get("blockedEvents"):
+                        # Retry only blocked games so released ones are not re-issued as revisions every attempt.
+                        spec["retry_events"] = status["blockedEvents"]
+                    db.execute("UPDATE jobs SET state=?,next_at=?,completed_at=?,message=?,spec=? WHERE key=?",
+                               ("complete" if finished else "waiting", seconds + (3600 if spec["mode"] == "full" else 600), seconds, message,
+                                json.dumps(spec), active["key"]))
                 # Manual jobs share the analysis lock and must finish first.
                 if self.manager.refresh.status["state"] == "running":
                     return
@@ -135,6 +139,11 @@ class WeeklyAutomation:
                                                   specs[row["key"]]["due"]))
                 for row in candidates:
                     spec = specs[row["key"]]
+                    if spec["final"] and not (self.manager.refresh.output.parent / "pregame-review.json").is_file():
+                        # Final release requires official inactives, which only a pregame review supplies.
+                        db.execute("UPDATE jobs SET state='complete',completed_at=?,message=? WHERE key=?",
+                                   (seconds, "Final check skipped: no official inactive review on file; preliminary picks stand.", row["key"]))
+                        continue
                     if spec["mode"] == "full":
                         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
                         full_today = db.execute("SELECT spec,attempts FROM jobs WHERE key LIKE ?", (f"{self.manager.season}:%:stats:{now.date()}",)).fetchall()
@@ -153,7 +162,8 @@ class WeeklyAutomation:
                     # Retry missing context without redownloading/retraining
                     # statistics already prepared successfully today.
                     mode = "context" if spec["mode"] == "full" and cached and timestamp_from_ready(cached) >= day_start else spec["mode"]
-                    result = self.manager.refresh.start(spec["week"], mode=mode, event_ids=spec["events"], final=spec["final"])
+                    events = json.loads(row["spec"]).get("retry_events", spec["events"])
+                    result = self.manager.refresh.start(spec["week"], mode=mode, event_ids=events, final=spec["final"])
                     db.execute("UPDATE jobs SET state=?,attempts=attempts+1,started_at=?,run_id=?,message=?,next_at=? WHERE key=?",
                                ("running" if result["state"] == "running" else "waiting", seconds, result["runId"], result["message"], seconds + 3600, row["key"]))
                     break

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import sqlite3
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
@@ -94,8 +95,41 @@ class AutomationTests(unittest.TestCase):
             now = datetime(2026,11,19,23,45,tzinfo=UTC)
             model = Path(folder)/"models"
             write_new(model/"models-ready.json",{"createdAt":now.isoformat()})
-            refresh = SimpleNamespace(status={"state":"idle"},cached_models=Mock(return_value=model),
+            refresh = SimpleNamespace(status={"state":"idle"},cached_models=Mock(return_value=model),output=Path(folder)/"refreshes",
                                       start=Mock(return_value={"state":"running","runId":"final","message":"Checking"}))
             scheduler = WeeklyAutomation(SimpleNamespace(dataset=schedule(),season=2026,refresh=refresh),Path(folder)/"jobs.db",lambda:now)
             scheduler.tick()
+            self.assertFalse(any(c.kwargs.get("final") for c in refresh.start.call_args_list))
+            db = sqlite3.connect(Path(folder)/"jobs.db")
+            messages = [row[0] or "" for row in db.execute("SELECT message FROM jobs WHERE state='complete'")]
+            db.close()
+            self.assertTrue(any("no official inactive review" in message for message in messages))
+            write_new(Path(folder)/"pregame-review.json",{})
+            refresh.start.reset_mock()
+            later = WeeklyAutomation(SimpleNamespace(dataset=schedule(),season=2026,refresh=refresh),Path(folder)/"jobs2.db",lambda:now)
+            later.tick()
             refresh.start.assert_called_once_with(11,mode="context",event_ids=["Thursday"],final=True)
+
+    def test_partially_blocked_run_retries_only_the_blocked_games(self):
+        with TemporaryDirectory() as folder:
+            now = [datetime(2026,11,22,12,30,tzinfo=UTC)]  # Sunday 6-hour window
+            model = Path(folder)/"models"
+            write_new(model/"models-ready.json",{"createdAt":now[0].isoformat()})
+            refresh = SimpleNamespace(status={"state":"idle"},cached_models=Mock(return_value=model),output=Path(folder)/"refreshes")
+            def start(week, **options):
+                refresh.status = {"state":"running","runId":"r%d" % refresh.start.call_count,"message":"Working"}
+                return refresh.status
+            refresh.start = Mock(side_effect=start)
+            scheduler = WeeklyAutomation(SimpleNamespace(dataset=schedule(),season=2026,refresh=refresh),Path(folder)/"jobs.db",lambda:now[0])
+            scheduler.tick()
+            self.assertEqual(refresh.start.call_args.kwargs["event_ids"],["Sunday1","Sunday2"])
+            refresh.status = {"state":"complete","runId":refresh.status["runId"],"message":"Saved 1",
+                              "releasedGames":1,"blockedGames":1,"blockedEvents":["Sunday2"]}
+            scheduler.tick()  # Records the partial release; the due daily job may start next.
+            for _ in range(3):
+                refresh.status = {**refresh.status,"state":"complete","releasedGames":1,"blockedGames":0}
+                now[0] += timedelta(minutes=10)
+                scheduler.tick()
+            calls = [c.kwargs["event_ids"] for c in refresh.start.call_args_list]
+            self.assertIn(["Sunday2"],calls)
+            self.assertEqual(calls.count(["Sunday1","Sunday2"]),1)

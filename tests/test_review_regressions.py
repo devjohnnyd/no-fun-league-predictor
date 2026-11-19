@@ -30,6 +30,17 @@ class AvailabilityRegressionTests(unittest.TestCase):
         for team in self.context["teams"].values():
             team["injuries"] = []
 
+    def test_injured_reserve_rows_do_not_count_as_live_absences(self):
+        schedule = self.entry["schedule"]
+        team = schedule["home_team"]
+        roles = self.engine.recent_roles(team, schedule["season"], schedule["week"])
+        pid, role = max(roles.items(), key=lambda item: item[1]["off"])
+        row = {"pid": pid, "position": role["position"], "status": "Injured Reserve"}
+        state = self.engine.injuries_state(team, schedule["season"], schedule["week"], [row])
+        self.assertEqual((state["ol_out"], state["skill_out"], state["def_out"]), (0., 0., 0.))
+        state = self.engine.injuries_state(team, schedule["season"], schedule["week"], [{**row, "status": "Out"}])
+        self.assertGreater(state["ol_out"] + state["skill_out"] + state["def_out"], 0.)
+
     def test_both_questionable_starting_qbs_use_their_backups(self):
         for team in self.context["teams"].values():
             team["injuries"] = [{"pid": team["qb_id"], "position": "QB", "status": "Questionable"}]

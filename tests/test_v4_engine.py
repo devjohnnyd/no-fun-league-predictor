@@ -5,7 +5,7 @@ import unittest
 from unittest import mock
 
 from nfl_predictor.engine import FeatureEngine, weighted_rate
-from nfl_predictor.live import collect_staff, coverage, parse_staff
+from nfl_predictor.live import collect_staff, coverage, parse_staff, require_known_qbs
 from nfl_predictor.research import feature_frame, paired_brier, reliability
 from nfl_predictor.storage import clean, read_json
 
@@ -77,6 +77,8 @@ class V4EngineTests(unittest.TestCase):
         parsed = parse_staff("<p>Old Coach left</p><h3>New Person</h3><h4>Head Coach</h4>", seed)
         self.assertEqual(parsed["head_coach"], "New Person")
         self.assertIsNone(parsed["offensive_coordinator"])
+        parsed = parse_staff("<h3>Jesse Minter</h3><h4>Head Coach</h4><p>JESSE MINTER</p>", {"head_coach": "Jesse Minter"})
+        self.assertEqual(parsed["head_coach"], "Jesse Minter")
 
     def test_staff_accepts_interim_roles_and_releases_without_a_coordinator(self):
         parsed = parse_staff("<h3>Todd Wash</h3><h4>Interim defensive coordinator</h4>", {})
@@ -92,6 +94,13 @@ class V4EngineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder, mock.patch("nfl_predictor.live.urlopen", return_value=response):
             _, receipt = collect_staff({"source": "https://example.test/staff"}, Path(folder) / "staff.html")
         self.assertEqual(receipt["status"], "unverified")
+
+    def test_unmapped_projected_qb_blocks_unless_a_debut_is_confirmed(self):
+        players = {"00-1": {}}
+        require_known_qbs(players, {"KC": {"qb_id": "00-1", "qb_name": "Known"}})
+        with self.assertRaisesRegex(ValueError, "no statistics identity"):
+            require_known_qbs(players, {"KC": {"qb_id": "ESPN:99", "qb_name": "Unknown"}})
+        require_known_qbs(players, {"KC": {"qb_id": "ESPN:99", "qb_name": "Rookie", "qb_debut_confirmed": True}})
 
     def test_reliability_shows_sampling_uncertainty(self):
         bins = reliability([1, 0], [.7, .7])

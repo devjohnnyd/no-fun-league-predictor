@@ -35,4 +35,4 @@ Run `python -m unittest discover -s tests -v`, `node --test tests/*.test.mjs` an
 
 For the November 16 local preview, `work/preview_performance.py` uses a SQLite backup under `work/performance-preview/`, not production state. The observed original winner record was 9-3 with one pending game; the quote count stayed at 210 across performance reads. The three supplied user choices were 1-2 and reported after kickoff. These are a point-in-time local verification, not a deployment claim.
 
-Claude reviews the predictor commit and the separate local host commit before Codex regenerates the bundle or pushes the hosted page. Pushing host `web/**` triggers deployment, so that commit remains local until review. Follow `agent-coordination.md` for commit IDs, scope and current handoff.
+To release, regenerate the johnny-ai API bundle with `scripts/sync_portfolio.py`, deploy the API, then push the host `web/**` change (that push triggers the Static Web Apps deployment). Deploy both together: the Games and Performance links 404 until the host page is live.

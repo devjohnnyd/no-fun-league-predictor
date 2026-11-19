@@ -9,6 +9,7 @@ from .features import BASE_NAMES
 from .freshness import timestamp
 
 OUT = {"Out", "Doubtful", "Injured Reserve", "IR", "Suspension", "Inactive"}
+RESERVE = {"Injured Reserve", "IR"}
 OL = {"C", "G", "T", "OT", "OG", "OL", "LT", "LG", "RG", "RT"}
 SKILL = {"RB", "FB", "WR", "TE", "HB"}
 SECONDARY = {"CB", "DB", "S", "FS", "SS", "LCB", "RCB", "NB"}
@@ -221,7 +222,8 @@ class FeatureEngine:
         replacement_unknown, quality_unknown = False, False
         primary_count = {"OL": 5, "WR": 3, "TE": 1, "RB": 1, "DB": 5, "DL": 4, "LB": 3}
         for injury in rows:
-            if injury.get("status") not in OUT | {"Questionable"} or position_group(injury.get("position")) == "QB":
+            # Training practice reports never list reserve players, so live reserve rows stay out of the workload features.
+            if injury.get("status") not in OUT | {"Questionable"} or injury.get("status") in RESERVE or position_group(injury.get("position")) == "QB":
                 continue
             pid = injury.get("pid")
             group = position_group(injury.get("position"))

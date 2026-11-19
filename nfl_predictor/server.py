@@ -1,18 +1,49 @@
 """Small same-origin scoreboard server for the portable dashboard."""
-from datetime import datetime, timezone
+from datetime import datetime, time as dt_time, timedelta, timezone
 from functools import partial
 import hashlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
+import logging
 from pathlib import Path
 import threading
 import time
 from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo
 
 from .dashboard import week_payload
 from .features import normalize_team
 from .sources import ESPN, games_from_scoreboard
+from .freshness import timestamp
 from .storage import read_json, sha256
+
+log = logging.getLogger(__name__)
+EASTERN = ZoneInfo("America/New_York")
+# Visitor-triggered input checks reuse the day's fitted model; each one also saves a revision batch.
+STALE_CONTEXT_SECONDS = 2 * 3600
+
+
+def week_kickoffs(dataset, season):
+    """Regular-season kickoffs by week, from the dataset schedule's Eastern game times."""
+    weeks = {}
+    for game in (dataset or {}).get("schedule", []):
+        if game.get("season") != season or not 1 <= int(game.get("week") or 0) <= 18 or not game.get("gameday"):
+            continue
+        kickoff = datetime.fromisoformat(f"{game['gameday']}T{game.get('gametime') or '00:00'}").replace(tzinfo=EASTERN)
+        weeks.setdefault(int(game["week"]), []).append(kickoff)
+    return weeks
+
+
+def current_week(dataset, season, now=None):
+    """A week stays current until 6 AM Eastern on the Tuesday after its last game."""
+    now = now or datetime.now(timezone.utc)
+    weeks = week_kickoffs(dataset, season)
+    for week in sorted(weeks):
+        last = max(weeks[week]).date()
+        tuesday = last + timedelta(days=(1 - last.weekday()) % 7 or 7)
+        if now < datetime.combine(tuesday, dt_time(6), EASTERN):
+            return week
+    return max(weeks) if weeks else 1
 
 
 def fetch_week(season, week):
@@ -126,6 +157,23 @@ class SeasonFeeds:
                 self.feeds[week] = result
             return self.feeds[week]
 
+    def current_week(self, now=None):
+        return current_week(self.dataset, self.season, now)
+
+    def refresh_if_stale(self, week, now=None):
+        """Start a light input check for the current week once the last one is stale; never a full model refit."""
+        now = now or datetime.now(timezone.utc)
+        if week != self.current_week(now) or not any(k > now for k in week_kickoffs(self.dataset, self.season).get(week, [])):
+            return None
+        status = self.refresh.status
+        if status.get("state") == "running":
+            return None
+        if status.get("week") == week and status.get("completedAt") and                 (now - timestamp(status["completedAt"])).total_seconds() < STALE_CONTEXT_SECONDS:
+            return None
+        if self.refresh.cached_models(week, now) is None:
+            return None
+        return self.refresh.start(week, mode="context")
+
     def install(self, dataset, batch, path):
         source = {"label":Path(path).relative_to(self.state_dir).as_posix(),"sha256":sha256(path)}
         with self.lock:
@@ -144,7 +192,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         from urllib.parse import parse_qs, urlsplit
         params = parse_qs(urlsplit(self.path).query)
         try:
-            week = int(params.get("week", [self.feed.week])[0])
+            week = int(params.get("week", [self.feed.current_week()])[0])
             if not 1 <= week <= 18:
                 raise ValueError()
         except ValueError:
@@ -155,6 +203,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             try:
                 self.send_json(self.feed.performance_feed.get())
             except Exception:
+                log.exception("Performance report failed")
                 self.send_json({"error":"Performance data unavailable; saved picks are unchanged."},503)
             return
         if route == "/api/refresh":
@@ -163,6 +212,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         if route.endswith("/live-week.json") or route == "/live-week.json":
             try:
                 active = self.feed.feed(week)
+                self.feed.refresh_if_stale(week)
                 if params.get("refresh") == ["1"]:
                     active.updated = 0
                 value, status = active.get(), 200
@@ -214,7 +264,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         except (ValueError, KeyError, TypeError, OverflowError, json.JSONDecodeError):
             self.send_error(400)
             return
-        self.send_json(self.feed.refresh.start(week), 202)
+        self.send_json(self.feed.refresh.start(week, manual=True), 202)
 
     def translate_path(self, path):
         from urllib.parse import unquote

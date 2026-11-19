@@ -8,6 +8,9 @@ import uuid
 from .freshness import check_pregame, timestamp
 from .storage import read_json, sha256, write_new
 
+MANUAL_DAILY_RUNS = 4
+SCHEDULED_DAILY_RUNS = 6
+
 
 class AnalysisRefresh:
     def __init__(self, manager, history_bundles, output):
@@ -18,7 +21,7 @@ class AnalysisRefresh:
         if previous:
             self.status = read_json(previous[-1])
 
-    def start(self, week, *, mode="full", event_ids=None, final=False):
+    def start(self, week, *, mode="full", event_ids=None, final=False, manual=False):
         with self.lock:
             if self.status["state"] == "running":
                 return dict(self.status)
@@ -27,11 +30,14 @@ class AnalysisRefresh:
                 budget_path = self.output.parent / "refresh-budget.json"
                 budget = read_json(budget_path) if budget_path.is_file() else {}
                 if budget.get("date") != now.date().isoformat():
-                    budget = {"date": now.date().isoformat(), "count": 0, "last_started": 0}
-                if budget["count"] >= 6 or now.timestamp() - budget["last_started"] < 600:
+                    budget = {"date": now.date().isoformat(), "count": 0, "manual": 0, "last_started": 0}
+                # Manual presses draw on their own allowance so they can never starve the scheduled preparation.
+                pool, limit = ("manual", MANUAL_DAILY_RUNS) if manual else ("count", SCHEDULED_DAILY_RUNS)
+                used = budget.get(pool, 0)
+                if used >= limit or now.timestamp() - budget["last_started"] < 600:
                     return {"state": "blocked", "week": week, "runId": uuid.uuid4().hex,
-                            "message": "Full statistics preparation is limited to six runs per UTC day and once per ten minutes. Pregame checks reuse recent fitted models."}
-                budget.update(count=budget["count"] + 1, last_started=now.timestamp())
+                            "message": f"Full statistics preparation is limited to {limit} {'manual' if manual else 'scheduled'} runs per UTC day and once per ten minutes. Pregame checks reuse recent fitted models."}
+                budget.update({pool: used + 1, "last_started": now.timestamp()})
                 budget_path.parent.mkdir(parents=True, exist_ok=True)
                 temporary = budget_path.with_suffix(".tmp")
                 temporary.write_text(json.dumps(budget), encoding="utf-8")
@@ -141,6 +147,7 @@ class AnalysisRefresh:
             self.manager.install(dataset, batch, root / "release/forecast.json")
             outcome = dict(state="complete", message=f"Saved {len(batch['forecast'])} fresh pregame winner and totals projections; {len(batch['blocked'])} blocked games.",
                            releasedGames=len(batch["forecast"]), blockedGames=len(batch["blocked"]),
+                           blockedEvents=sorted(str(game["event_id"]) for game in batch["blocked"]),
                            completedAt=datetime.now(timezone.utc).isoformat())
         except Exception as error:
             outcome = dict(state="blocked", message=str(error), completedAt=datetime.now(timezone.utc).isoformat())

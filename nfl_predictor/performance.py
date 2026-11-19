@@ -1,5 +1,6 @@
 """Read-only season scoring of recorded picks, independently of model fitting."""
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time as dt_time, timezone
+import logging
 import json
 import math
 from pathlib import Path
@@ -13,6 +14,7 @@ from .model import scores
 from .storage import clean, read_json
 from .totals import card_rows, total_forecasts
 
+log = logging.getLogger(__name__)
 KINDS = {"winner":"Winner picks", "market":"Market totals", "printed-model":"Printed card model", "printed-user":"Your printed card picks"}
 
 
@@ -35,7 +37,8 @@ def issue_time(batch):
     if batch.get("issued_at"):
         return batch["issued_at"], timestamp(batch["issued_at"]), "exact"
     day = date.fromisoformat(batch["as_of"])
-    return day.isoformat(), timestamp(day.isoformat()+"T23:59:59.999999Z"), "date"
+    end = datetime.combine(day,dt_time.max,ZoneInfo("America/New_York")).astimezone(timezone.utc)
+    return day.isoformat(), end, "date"
 
 
 def probability(value):
@@ -146,7 +149,9 @@ def season_payload(dataset, season, batches, observations, cards, results, batch
             expected = scheduled.get(event)
             if not expected or expected["week"] != week or (normalize_team(game["home"]),normalize_team(game["away"])) != (expected["home"],expected["away"]):
                 raise ValueError("Performance result identity conflict")
-            games[event] = {**game,"season":season,"week":week,"home":expected["home"],"away":expected["away"]}
+            # A flexed game moves later; use the later kickoff so pregame checks agree across record types.
+            kickoff = max(game["kickoff"],expected["kickoff"],key=timestamp)
+            games[event] = {**game,"season":season,"week":week,"home":expected["home"],"away":expected["away"],"kickoff":kickoff}
     originals, latest, counts = original_winners(batches,games,batch_sources)
     rows = []
     def append(game, kind, pick, issued, p=None, line=None, **extra):
@@ -249,11 +254,12 @@ class SeasonPerformance:
                 dataset, batches = self.manager.dataset, list(self.manager.batches)
                 batch_sources = list(self.manager.batch_sources)
             scheduled = schedule_index(dataset,self.manager.season)
-            originals, _, _ = original_winners(batches,scheduled,batch_sources)
+            # Only weeks are needed here; kickoff validation happens in season_payload against provider times.
+            events = {str(c["espn_id"]) for batch in batches for c in batch.get("forecast",[])}
             observations = self.manager.line_tracker.original_selections(self.manager.season)
             directory = self.manager.card_path.parent if self.manager.card_path else Path("data/cards")
             cards = [read_json(path) for path in sorted(directory.glob(f"{self.manager.season}-week*.json"))]
-            weeks = {scheduled[e]["week"] for e in originals} | {r["week"] for r in observations} | {c["week"] for c in cards}
+            weeks = {scheduled[e]["week"] for e in events if e in scheduled} | {r["week"] for r in observations} | {c["week"] for c in cards}
             results, warnings = {}, []
             now = datetime.now(timezone.utc)
             for week in sorted(weeks):
@@ -271,6 +277,7 @@ class SeasonPerformance:
                         raise ValueError("Incomplete or conflicting result slate")
                     self.results[week] = results[week] = manifest
                 except Exception:
+                    log.exception("Performance results for week %s unavailable", week)
                     if previous:
                         results[week] = previous
                     warnings.append(f"Week {week}: result provider unavailable; {'retaining the earlier source time' if previous else 'results remain unavailable'}.")

@@ -45,9 +45,9 @@ def parse_staff(html, seed):
             if label == role.casefold() or label.startswith(role.casefold() + "/") or label.startswith(role.casefold() + " /"):
                 nearby = page.tokens[max(0, index - 2): index + 3]
                 expected = seed.get(field)
-                for text in nearby:
-                    if expected and text.casefold() == expected.casefold():
-                        candidates.insert(0, text)
+                # Keep the seed's spelling: pages also print names in capitals, and coach changes are exact-string compares.
+                if expected and any(text.casefold() == expected.casefold() for text in nearby):
+                    candidates.insert(0, expected)
                 for offset in (-1, 1):
                     if 0 <= index + offset < len(page.tokens):
                         name = page.tokens[index + offset]
@@ -123,6 +123,13 @@ def team_context(engine, code, depth, summary, now):
     return result
 
 
+def require_known_qbs(players, teams):
+    """An unmapped QB would be scored as a zero-experience rookie, so only a reviewed debut may proceed."""
+    for code, team in teams.items():
+        if team["qb_id"] not in players and team.get("qb_debut_confirmed") is not True:
+            raise ValueError(f"qb: projected {code} QB {team['qb_name']} has no statistics identity; confirm a debut in pregame review")
+
+
 def coverage(engine, season, week):
     expected = [g for g in engine.schedule.values() if g["season"] == season and g["week"] < week]
     missing = [g["game_id"] for g in expected if g.get("home_score") is None or
@@ -183,8 +190,9 @@ def prepare(dataset_path, venues_path, staff_seed_path, season, week, output, re
             for code, changes in override.get("teams", {}).items():
                 if code not in context["teams"]:
                     raise ValueError("Review override targets a different team")
-                allowed = {k: v for k, v in changes.items() if k in {"qb_id", "qb_name", "backup_qb_id", "backup_qb_name", "injuries", "staff"}}
+                allowed = {k: v for k, v in changes.items() if k in {"qb_id", "qb_name", "backup_qb_id", "backup_qb_name", "injuries", "staff", "qb_debut_confirmed"}}
                 context["teams"][code].update(allowed)
+            require_known_qbs(engine.players, context["teams"])
             for kind in ("staff", "inactives", "weather"):
                 if kind in override.get("sources", {}):
                     game["sources"][kind] = override["sources"][kind]
