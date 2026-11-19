@@ -40,7 +40,9 @@ def parse_staff(html, seed):
     for field, role in roles.items():
         candidates = []
         for index, token in enumerate(page.tokens):
-            if token.casefold() == role.casefold() or token.casefold().startswith(role.casefold() + "/") or token.casefold().startswith(role.casefold() + " /"):
+            # Clubs list mid-season replacements as e.g. "Interim defensive coordinator".
+            label = token.casefold().removeprefix("interim ")
+            if label == role.casefold() or label.startswith(role.casefold() + "/") or label.startswith(role.casefold() + " /"):
                 nearby = page.tokens[max(0, index - 2): index + 3]
                 expected = seed.get(field)
                 for text in nearby:
@@ -63,9 +65,11 @@ def collect_staff(seed, destination):
         content = response.read()
     destination.write_bytes(content)
     parsed = parse_staff(content.decode("utf-8", errors="replace"), seed)
+    # The model reads only the head coach; coordinators stay recorded (or None) but do not block
+    # release, since some clubs list no defensive coordinator when the head coach calls the defense.
     return parsed, {"url": url, "retrieved_at": datetime.now(timezone.utc).isoformat(),
                     "sha256": hashlib.sha256(content).hexdigest(),
-                    "status": "ok" if all(parsed.get(k) for k in ("head_coach", "offensive_coordinator", "defensive_coordinator")) else "unverified"}
+                    "status": "ok" if parsed.get("head_coach") else "unverified"}
 
 
 def team_context(engine, code, depth, summary, now):

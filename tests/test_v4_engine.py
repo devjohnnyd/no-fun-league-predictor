@@ -1,9 +1,11 @@
 import copy
 from pathlib import Path
+import tempfile
 import unittest
+from unittest import mock
 
 from nfl_predictor.engine import FeatureEngine, weighted_rate
-from nfl_predictor.live import coverage, parse_staff
+from nfl_predictor.live import collect_staff, coverage, parse_staff
 from nfl_predictor.research import feature_frame, paired_brier, reliability
 from nfl_predictor.storage import clean, read_json
 
@@ -75,6 +77,21 @@ class V4EngineTests(unittest.TestCase):
         parsed = parse_staff("<p>Old Coach left</p><h3>New Person</h3><h4>Head Coach</h4>", seed)
         self.assertEqual(parsed["head_coach"], "New Person")
         self.assertIsNone(parsed["offensive_coordinator"])
+
+    def test_staff_accepts_interim_roles_and_releases_without_a_coordinator(self):
+        parsed = parse_staff("<h3>Todd Wash</h3><h4>Interim defensive coordinator</h4>", {})
+        self.assertEqual(parsed["defensive_coordinator"], "Todd Wash")
+        page = b"<h3>Head Person</h3><h4>Head Coach</h4><h3>Off Person</h3><h4>Offensive Coordinator</h4>"
+        response = mock.MagicMock()
+        response.__enter__.return_value.read.return_value = page
+        with tempfile.TemporaryDirectory() as folder, mock.patch("nfl_predictor.live.urlopen", return_value=response):
+            staff, receipt = collect_staff({"source": "https://example.test/staff"}, Path(folder) / "staff.html")
+        self.assertIsNone(staff["defensive_coordinator"])
+        self.assertEqual(receipt["status"], "ok")
+        response.__enter__.return_value.read.return_value = b"<h3>Off Person</h3><h4>Offensive Coordinator</h4>"
+        with tempfile.TemporaryDirectory() as folder, mock.patch("nfl_predictor.live.urlopen", return_value=response):
+            _, receipt = collect_staff({"source": "https://example.test/staff"}, Path(folder) / "staff.html")
+        self.assertEqual(receipt["status"], "unverified")
 
     def test_reliability_shows_sampling_uncertainty(self):
         bins = reliability([1, 0], [.7, .7])
