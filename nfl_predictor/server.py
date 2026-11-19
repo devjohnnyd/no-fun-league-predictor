@@ -123,18 +123,25 @@ class SeasonFeeds:
         self.state_dir = Path(state_dir)
         self.line_tracker = LineTracker(self.state_dir / "lines.sqlite3")
         # Reload immutable revisions from earlier local refresh sessions.
+        latest_dataset = None
         for path in sorted((self.state_dir / "refreshes").glob("*/release/forecast.json")):
             self.batches.append(read_json(path))
             self.batch_sources.append({"label":path.relative_to(self.state_dir).as_posix(),"sha256":sha256(path)})
-            refreshed_dataset = path.parents[1] / "dataset.json.gz"
+            refreshed_dataset, expected = path.parents[1] / "dataset.json.gz", None
             reference = path.parents[1] / "dataset-reference.json"
             if reference.is_file():
                 pointer = read_json(reference)
-                refreshed_dataset = (self.state_dir / "refreshes" / pointer["path"]).resolve()
-                if not refreshed_dataset.is_relative_to((self.state_dir / "refreshes").resolve()) or hashlib.sha256(refreshed_dataset.read_bytes()).hexdigest() != pointer["sha256"]:
+                refreshed_dataset, expected = (self.state_dir / "refreshes" / pointer["path"]).resolve(), pointer["sha256"]
+                if not refreshed_dataset.is_relative_to((self.state_dir / "refreshes").resolve()):
                     raise ValueError("Saved forecast dataset reference failed integrity verification")
             if refreshed_dataset.is_file():
-                self.dataset = read_json(refreshed_dataset)
+                latest_dataset = (refreshed_dataset, expected)
+        # Only the newest dataset is used, so verify and parse just that one; startup time must not grow with revisions.
+        if latest_dataset:
+            refreshed_dataset, expected = latest_dataset
+            if expected and hashlib.sha256(refreshed_dataset.read_bytes()).hexdigest() != expected:
+                raise ValueError("Saved forecast dataset reference failed integrity verification")
+            self.dataset = read_json(refreshed_dataset)
         self.feeds, self.lock = {}, threading.RLock()
         self.refresh = AnalysisRefresh(self, history_bundles, self.state_dir / "refreshes")
         from .automation import WeeklyAutomation

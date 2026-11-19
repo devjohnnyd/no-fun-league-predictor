@@ -66,3 +66,31 @@ class VisitRefreshTests(unittest.TestCase):
         self.assertEqual(self.feeds.refresh_if_stale(11, now)["state"], "running")
         self.refresh.start.assert_called_once_with(11, mode="context")
         self.assertIsNone(self.feeds.refresh_if_stale(11, self.at("2026-11-24T02:00")))
+
+
+class StartupDatasetTests(unittest.TestCase):
+    def build(self, state, newest_digest_ok):
+        import gzip, hashlib, json
+        from pathlib import Path
+        from nfl_predictor.server import SeasonFeeds
+        refreshes = Path(state) / "refreshes"
+        for name, marker in (("20261119T010000Z", "older"), ("20261119T020000Z", "newest")):
+            run = refreshes / name
+            (run / "release").mkdir(parents=True)
+            (run / "release/forecast.json").write_text(json.dumps({"forecast": [], "as_of": "2026-11-19"}), encoding="utf-8")
+            data = gzip.compress(json.dumps({"schedule": [], "marker": marker}).encode())
+            (run / "dataset.json.gz").write_bytes(data)
+            digest = hashlib.sha256(data).hexdigest() if marker == "newest" and newest_digest_ok else "0" * 64
+            (run / "dataset-reference.json").write_text(json.dumps({"path": f"{name}/dataset.json.gz", "sha256": digest}), encoding="utf-8")
+        metadata = Path(state) / "venues.json"
+        metadata.write_text("{}", encoding="utf-8")
+        return SeasonFeeds(2026, 11, metadata, [], None, None, state, (), None)
+
+    def test_only_the_newest_refresh_dataset_is_verified_and_loaded(self):
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as state:
+            feeds = self.build(state, newest_digest_ok=True)
+            self.assertEqual(feeds.dataset["marker"], "newest")
+            self.assertEqual(len(feeds.batches), 2)
+        with TemporaryDirectory() as state, self.assertRaisesRegex(ValueError, "integrity"):
+            self.build(state, newest_digest_ok=False)
