@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, DataComponent, Dialog, Dropdown, Icon, SegmentedControl, SortableItem, SortableRegion, useDataApp } from "../../data-app-public.jsx";
-import { filterGames, gameSummary, inputFreshness, kickoffLabel, orderedGames, predictionLabel, sourceAgeLabel, totalRecord } from "./football.mjs";
+import { filterGames, gameSummary, inputFreshness, kickoffLabel, orderedGames, predictionLabel, sourceAgeLabel, spreadLabel, totalRecord, weeklyTossUp } from "./football.mjs";
 import { useAnalysisRefresh } from "./use-analysis-refresh.js";
 import { NflViews, PerformanceContent } from "../performance/PerformanceContent.jsx";
 
@@ -15,6 +15,48 @@ function MarketTotal({ total, state }) {
     {total.originalPick ? <p className={total.correct === true ? "nfl-total-won" : total.correct === false ? "nfl-total-lost" : ""}>Tracked pick: {total.originalPick.lean} {total.originalLine} · {total.correct === true ? "Won" : total.correct === false ? "Lost" : total.actualOutcome === "Push" ? "Push" : "Pending"}</p> : <p>No pregame market pick recorded</p>}
     {total.observedAt && <small>Line seen {new Date(total.observedAt).toLocaleString("en-US", {timeZone:"America/New_York", month:"short", day:"numeric", hour:"numeric", minute:"2-digit"})} ET</small>}
   </div>;
+}
+
+function MarketSpread({ row }) {
+  const spread = row.marketSpread;
+  const analysis = spread?.analysis;
+  const margin = spread?.projection?.projected_home_margin;
+  const status = spread?.correct === true ? "Won" : spread?.correct === false ? "Lost" : spread?.actualOutcome === "Push" ? "Push" : "Pending";
+  return <div className="nfl-market-total" data-reviewed-rows>
+    <div className="nfl-market-heading"><strong>Point spread</strong><strong>{spreadLabel(row, spread?.latestLine)}</strong></div>
+    {spread?.latestLine != null && <p>{spread.book} · {spread.quoteStatus}{spread.movement !== 0 && <> · First seen {spreadLabel(row, spread.firstObservedLine)}</>}</p>}
+    {analysis && <p><strong>{analysis.lean === "Even" ? "No spread lean" : `Cover pick: ${spreadLabel(row, spread.latestLine, analysis.lean)}`}</strong>{analysis.lean !== "Even" && ` · ${Math.round(Math.max(analysis.home_cover_probability, analysis.away_cover_probability) * 100)}%`}</p>}
+    {margin != null && <p>Projected margin: {Math.abs(margin) < .05 ? "Tied" : `${margin > 0 ? row.homeCode : row.awayCode} by ${Math.abs(margin).toFixed(1)}`} · Experimental</p>}
+    {spread?.originalPick ? <p className={status === "Won" ? "nfl-total-won" : status === "Lost" ? "nfl-total-lost" : ""}>Tracked pick: {spreadLabel(row, spread.originalLine, spread.originalPick.lean)} · {status}</p> :
+      <p>{row.state === "pre" ? margin == null ? "Spread pick pending fresh pregame inputs" : "Awaiting a directional pick at a current line" : "No saved pregame spread pick"}</p>}
+  </div>;
+}
+
+function TossUp({ spotlight, onDetails }) {
+  if (!spotlight) return null;
+  const { row, forecastCount, quoteCount } = spotlight;
+  const home = Math.round(row.homeProbability * 100);
+  const away = 100 - home;
+  return <DataComponent id="weekly-toss-up" queryId="matchups" title="Toss-up of the week" showHeading={false} kind="custom" variant="plain" sourceRows={[row]} displayRows={[row]} className="nfl-toss-up-evidence">
+    <section className="nfl-toss-up" aria-labelledby="nfl-toss-up-title" data-reviewed-rows>
+      <div className="nfl-toss-up-copy">
+        <h2 id="nfl-toss-up-title">Toss-up of the week</h2>
+        <p>{kickoffLabel(row.kickoff)}{row.state === "post" ? " · Final" : row.state === "in" ? " · Live" : ""}</p>
+        <button type="button" className="nfl-details-link" onClick={() => onDetails(row)}>Matchup details <span aria-hidden="true">↗</span></button>
+      </div>
+      <div className="nfl-toss-up-data">
+        <div className="nfl-toss-up-teams">
+          <span><img src={row.awayLogo} alt="" width="44" height="44" />{row.awayCode}{forecastCount > 0 && <strong>{away}%</strong>}</span>
+          <small>at</small>
+          <span>{forecastCount > 0 && <strong>{home}%</strong>}{row.homeCode}<img src={row.homeLogo} alt="" width="44" height="44" /></span>
+        </div>
+        {forecastCount > 0 ? <>
+          <div className="nfl-toss-up-track" role="img" aria-label={`${row.awayName} ${away}% and ${row.homeName} ${home}% estimated win probability`}><span style={{ width: `${away}%` }} /></div>
+          <p>{row.homeProbability === .5 ? "50/50 on the model" : `Model leans ${row.pick}`} · Closest of {forecastCount} saved winner {forecastCount === 1 ? "pick" : "picks"}</p>
+        </> : <p>{spreadLabel(row, row.marketSpread.latestLine)} · Tightest of {quoteCount} quoted lines · Model pick pending</p>}
+      </div>
+    </section>
+  </DataComponent>;
 }
 
 function TeamRow({ row, side }) {
@@ -41,6 +83,7 @@ function GameCard({ row, onDetails }) {
       {row.pick ? <><div className="nfl-pick-line"><span><strong>{row.pick}</strong> to win <span className="nfl-prediction-stage">{predictionLabel(row)}</span></span><strong className="nfl-confidence">{confidence}%</strong></div><div className="nfl-probability-track" role="img" aria-label={`${confidence}% estimated chance of a ${row.pick} win`}><span style={{ width: `${confidence}%`, background: teamColor }} /></div></> : <span className="nfl-no-pick">No saved pick for this game</span>}
     </div>
     <MarketTotal total={row.marketTotal} state={row.state} />
+    <MarketSpread row={row} />
     <div className="nfl-card-bottom"><span className={`nfl-result ${row.originalCorrect === true ? "is-correct" : row.originalCorrect === false ? "is-miss" : ""}`}>{row.originalCorrect === true ? `✓ Original winner pick${originalNote} won` : row.originalCorrect === false ? `× Original winner pick${originalNote} missed` : row.tied ? "Tie · excluded from record" : row.pick ? "Awaiting winner result" : "No saved winner pick"}</span><button type="button" className="nfl-details-link" onClick={() => onDetails(row)} aria-label={`Details for ${row.awayName} at ${row.homeName}`}>Details <span aria-hidden="true">↗</span></button></div>
   </article>;
 }
@@ -56,7 +99,7 @@ function BackgroundLines({ collection, week }) {
       {current.nextCheckAt && <p>Next check due: {time(current.nextCheckAt)}</p>}
     </> : <p>This week is outside the current collection window or awaiting its first check. Upcoming games enter collection eight days before kickoff.</p>}
     {collection.error && <p role="status">{collection.error}</p>}
-    <p>{collection.provider}. Quotes may be delayed or unavailable. Printed William Hill card totals remain separate. Line refreshes reuse saved pregame projections.</p>
+    <p>{collection.provider}. Checks capture totals and spreads. The coverage above counts games with total quotes. Line refreshes reuse saved pregame projections.</p>
   </details>;
 }
 
@@ -76,6 +119,24 @@ function InputStatus({ row, latest, now }) {
   </section>;
 }
 
+function SpreadHistory({ row }) {
+  const history = row.marketSpread?.history || [];
+  return <section className="nfl-detail-section" data-reviewed-rows>
+    <h3>Point spread and line history</h3>
+    <MarketSpread row={row} />
+    {history.length > 0 && <div className="nfl-history-scroll" tabIndex={0} role="region" aria-label="Spread line observations">
+      <table><thead><tr><th>Observed (ET)</th><th>Provider</th><th>Home spread</th><th>Cover pick then</th></tr></thead>
+        <tbody>{history.map(item => <tr key={`${item.book_id}:${item.observed_at}`}>
+          <td>{new Date(item.observed_at).toLocaleString("en-US", {timeZone:"America/New_York", month:"short", day:"numeric", hour:"numeric", minute:"2-digit"})}</td>
+          <td>{item.book}</td><td>{spreadLabel(row, item.line)}</td>
+          <td>{!item.analysis ? "No forecast" : item.analysis.lean === "Even" ? "No lean" : spreadLabel(row, item.line, item.analysis.lean)}</td>
+        </tr>)}</tbody>
+      </table>
+    </div>}
+    <p>A cover means the selected team’s score plus its spread beats its opponent’s score. Equal adjusted scores are a push. Results use the first saved directional pick and its exact line.</p>
+  </section>;
+}
+
 function Detail({ row, onClose, latest, now }) {
   if (!row) return null;
   const clockText = value => value ? value.slice(11, 16).replace(/^(\d{2}):(\d{2})$/, (_, h, m) => `${Number(h) % 12 || 12}:${m} ${Number(h) >= 12 ? "PM" : "AM"}`) : "Unavailable";
@@ -90,6 +151,7 @@ function Detail({ row, onClose, latest, now }) {
     {row.shadowComparisons?.length > 0 && <section className="nfl-detail-section" data-reviewed-rows><h3>Model comparison</h3><p>Estimated chance of a {row.homeCode} win. Research models are tracked separately from the saved primary pick.</p><dl>{row.shadowComparisons.filter(item => ["efficiency_qb", "body_clock", "combined"].includes(item.model)).map(item => <div key={item.model}><dt>{{efficiency_qb: "Efficiency + QB", body_clock: "With body clock", combined: "All new metrics"}[item.model]}</dt><dd>{Math.round(item.homeProbability * 100)}% · Experimental</dd></div>)}{row.eloHomeProbability != null && <div><dt>Independent Elo</dt><dd>{Math.round(row.eloHomeProbability * 100)}%</dd></div>}{row.marketHomeProbability != null && <div><dt>Market benchmark</dt><dd>{Math.round(row.marketHomeProbability * 100)}% · Margin removed</dd></div>}</dl></section>}
     <section className="nfl-detail-section"><h3>Market total and line history</h3><MarketTotal total={row.marketTotal} />{row.marketTotal?.forecastIssuedAt && <p>Projection issued {new Date(row.marketTotal.forecastIssuedAt).toLocaleString("en-US", {timeZone:"America/New_York"})} ET. Refreshing a line can change its lean without rebuilding these model inputs.</p>}{row.marketTotal?.history?.length > 0 && <div className="nfl-history-scroll" tabIndex={0} role="region" aria-label="Total line observations"><table><thead><tr><th>Observed (ET)</th><th>Provider</th><th>Line</th><th>Analysis then</th></tr></thead><tbody>{row.marketTotal.history.map(item => <tr key={`${item.book_id}:${item.observed_at}`}><td>{new Date(item.observed_at).toLocaleString("en-US", {timeZone:"America/New_York", month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</td><td>{item.book}</td><td>{item.line}</td><td>{item.analysis?.lean || "No forecast"}</td></tr>)}</tbody></table></div>}<p>First observed is the first quote captured by this tracker, rather than the market opening line. Quotes may be delayed; provider update time is unknown. Printed brochure totals remain fixed and separate.</p></section>
     {row.marketTotal?.historyObservationCount > row.marketTotal?.history?.length && <p className="nfl-history-note">Showing {row.marketTotal.history.length} line/analysis changes and latest provider checks from {row.marketTotal.historyObservationCount} captured observations. Every timestamped observation remains saved on the server.</p>}
+    <SpreadHistory row={row} />
     <div className="nfl-detail-actions"><Button className="nfl-detail-close" onClick={onClose}>Back to games</Button></div>
   </div>;
 }
@@ -146,6 +208,8 @@ function MatchupsContent() {
   if (Number.isInteger(requestedWeek) && requestedWeek >= 1 && requestedWeek <= 18 && requestedWeek !== snapshot.period?.week) return <div className="nfl-dashboard nfl-empty" role="status"><strong>Loading Week {requestedWeek}…</strong><p>{snapshot.nflFeed?.error || "Checking the complete schedule and available data."}</p><a href="?view=1&tab=dashboard">Return to the saved week</a></div>;
   const marketPicks = all.map(row => row.marketTotal).filter(Boolean);
   const marketRecord = { wins: marketPicks.filter(row => row.correct === true).length, losses: marketPicks.filter(row => row.correct === false).length, picks: marketPicks.filter(row => row.originalPick).length };
+  const spreadRecord = totalRecord(all.map(row => ({ ...row.marketSpread, analysis: row.marketSpread?.originalPick })));
+  const spotlight = weeklyTossUp(all);
   return <div className="nfl-dashboard">
     <NflViews active="games" />
     <div className="nfl-week-toolbar"><div className="nfl-week-label"><span className="nfl-season">{snapshot.period?.season} NFL season</span><label className="nfl-week-select"><span className="nfl-visually-hidden">NFL week</span><select aria-label="NFL week" value={snapshot.period?.week} onChange={event => {const url = new URL(window.location.href); url.searchParams.set("week", event.target.value); window.location.assign(url);}}>{Object.keys(snapshot.seasonSchedule || {[snapshot.period?.week]:[]}).map(week => <option key={week} value={week}>Week {week}</option>)}</select></label></div><div className="nfl-feed-controls"><span className={`nfl-feed-label ${stale ? "is-stale" : ""}`} role="status"><span className="nfl-feed-dot" />{stale ? "Last update" : snapshot.nflFeed?.status === "connected" ? "Scores & lines" : "Snapshot"} {age.text}</span><Button className="nfl-refresh-button" disabled={busy} onClick={refreshAnalysis} aria-label="Refresh data and analysis"><Icon name="refresh" />{busy ? "Refreshing…" : "Refresh data & analysis"}</Button></div></div>
@@ -154,7 +218,8 @@ function MatchupsContent() {
     {snapshot.nflFeed?.error && <div className="nfl-feed-warning" role="status">Live updates are temporarily unavailable. Scores below retain their last successful update.</div>}
     <BackgroundLines collection={job.marketCollection} week={snapshot.period?.week} />
     <nav className="nfl-mobile-nav" aria-label="Dashboard sections"><a href="#nfl-matchups">Games · {all.length}</a>{brochure.length > 0 && visible("weekly-totals") && <a href="#nfl-weekly-totals">Printed card · {brochure.length}</a>}</nav>
-    <p className="nfl-tracking-scope" data-reviewed-rows>All {all.length} games · {all.length} market totals tracked · Includes Thursday<br />Market total model record: {marketRecord.picks ? `${marketRecord.wins}–${marketRecord.losses} from ${marketRecord.picks} saved picks` : "No saved picks yet"} · Experimental</p>
+    <TossUp spotlight={spotlight} onDetails={setSelected} />
+    <p className="nfl-tracking-scope" data-reviewed-rows>All {all.length} games · Winners, totals and spreads<br />Market totals: {marketRecord.picks ? `${marketRecord.wins}–${marketRecord.losses} from ${marketRecord.picks} saved picks` : "No saved picks yet"}<br />Against the spread: {spreadRecord.selections ? `${spreadRecord.wins}–${spreadRecord.losses} · ${spreadRecord.pushes} pushes · ${spreadRecord.pending} pending` : "No saved picks yet"}</p>
     {visible("week-overview") && <DataComponent id="week-overview" queryId="matchups" title="This week" kind="custom" variant="plain" sourceRows={filtered} displayRows={filtered} className="nfl-overview-evidence"><div className="nfl-overview" data-reviewed-rows><div><span>Matchups shown</span><strong>{summary.games}</strong></div><div><span>Live now</span><strong className={summary.live ? "nfl-live-count" : ""}>{summary.live}</strong></div><div><span>Still to come</span><strong>{summary.upcoming}</strong></div><div><span>Original picks record</span><strong>{summary.decided ? `${summary.wins}–${summary.losses}` : "—"}</strong><small>{summary.decided ? `${summary.decided} completed ${summary.decided === 1 ? "pick" : "picks"}` : "No completed picks in this view"}</small></div></div></DataComponent>}
     {brochure.length > 0 && visible("weekly-totals") && <BrochureCard rows={brochure} teams={all} onDetails={setSelected} />}
     <span id="nfl-matchups" className="nfl-section-anchor" aria-hidden="true" />

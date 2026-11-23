@@ -10,6 +10,7 @@ from .storage import read_json, sha256, write_new
 
 MANUAL_DAILY_RUNS = 4
 SCHEDULED_DAILY_RUNS = 6
+SCORE_MODELS_VERSION = 2
 
 
 class AnalysisRefresh:
@@ -54,7 +55,7 @@ class AnalysisRefresh:
         for path in sorted(self.output.glob("*/models-ready.json"), reverse=True):
             try:
                 ready = read_json(path)
-                if (ready["season"], ready["week"]) != (self.manager.season, week):
+                if (ready["season"], ready["week"]) != (self.manager.season, week) or ready.get("scoreModelsVersion") != SCORE_MODELS_VERSION:
                     continue
                 if not 0 <= (now - timestamp(ready["createdAt"])).total_seconds() < 24 * 3600:
                     continue
@@ -119,12 +120,12 @@ class AnalysisRefresh:
                 count = len(complete["missing_games"])
                 raise ValueError(f"New statistics downloaded, but {count} prior {'game still lacks' if count == 1 else 'games still lack'} complete results/statistics. New picks are blocked until the provider publishes them.")
             if model_root is None:
-                self.status.update(message="Fitting chronological winner and total-points models…")
+                self.status.update(message="Fitting chronological winner, total-points and spread models…")
                 research(dataset_path, root / "research", self.manager.season, week, self.manager.metadata_path)
                 research_totals(dataset_path, self.manager.metadata_path, self.manager.season, week, root / "totals")
                 model_root = root
                 write_new(root / "models-ready.json", {"season": self.manager.season, "week": week,
-                    "createdAt": datetime.now(timezone.utc).isoformat(), "venues_sha256": sha256(self.manager.metadata_path),
+                    "createdAt": datetime.now(timezone.utc).isoformat(), "venues_sha256": sha256(self.manager.metadata_path), "scoreModelsVersion": SCORE_MODELS_VERSION,
                     "files": {name: sha256(root / name) for name in ("dataset.json.gz", "research/research.json", "totals/totals-model.json")}})
             # Prepare AFTER fitting: slow research must not age the feature vector.
             self.status.update(message="Refreshing quarterbacks, injuries, coaches and kickoff weather…")
@@ -145,7 +146,7 @@ class AnalysisRefresh:
                 raise ValueError("New forecasts blocked: " + "; ".join(reason for game in batch["blocked"] for reason in game["reasons"]))
             write_new(root / "dataset-reference.json", {"path": str(dataset_path.relative_to(self.output)), "sha256": sha256(dataset_path)})
             self.manager.install(dataset, batch, root / "release/forecast.json")
-            outcome = dict(state="complete", message=f"Saved {len(batch['forecast'])} fresh pregame winner and totals projections; {len(batch['blocked'])} blocked games.",
+            outcome = dict(state="complete", message=f"Saved {len(batch['forecast'])} fresh pregame winner, totals and spread projections; {len(batch['blocked'])} blocked games.",
                            releasedGames=len(batch["forecast"]), blockedGames=len(batch["blocked"]),
                            blockedEvents=sorted(str(game["event_id"]) for game in batch["blocked"]),
                            completedAt=datetime.now(timezone.utc).isoformat())

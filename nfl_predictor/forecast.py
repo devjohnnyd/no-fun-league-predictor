@@ -124,8 +124,10 @@ def issue(dataset_path, venues_path, research_path, prepared_path, output, final
                           "shadow_forecasts": shadows, "elo_home_probability": elo_probability(engine.dataset, entry["schedule"]),
                           "market": aligned_consensus(quotes, now.isoformat(), game["kickoff"]), "sources": game["sources"], "preflight": preflight})
         if totals_model:
-            from .totals import projection, total_features
+            from .totals import projection, spread_projection, total_features
             forecasts[-1]["total_projection"] = projection(totals_model, total_features(engine, entry["schedule"], entry["context"], detail))
+            if "spread_model" in totals_model:
+                forecasts[-1]["spread_projection"] = spread_projection(totals_model["spread_model"], features)
     released_at = now if not verify_live else datetime.now(timezone.utc)
     still_pregame = []
     for forecast in forecasts:

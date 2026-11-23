@@ -87,10 +87,12 @@ class SeasonStartRegressionTests(unittest.TestCase):
 
     def test_week_one_totals_model_is_saved_without_current_season_diagnostics(self):
         data = read_json(DATA)
-        engine = SimpleNamespace(team_by_game={(g["game_id"], g["home_team"]): {} for g in data["schedule"]})
+        engine = SimpleNamespace(team_by_game={(g["game_id"], g["home_team"]): {} for g in data["schedule"]},
+                                 features=lambda game: ({"off_epa_diff": game["week"]}, {}))
         with TemporaryDirectory() as directory, patch("nfl_predictor.totals.FeatureEngine", return_value=engine), \
                 patch("nfl_predictor.totals.CORE", ["offense_sum"]), patch("nfl_predictor.totals.CONTEXT", []), \
-                patch("nfl_predictor.totals.total_features", side_effect=lambda _, game: {"offense_sum": game["week"]}):
+                patch("nfl_predictor.totals.BASE_NAMES", ["off_epa_diff"]), \
+                patch("nfl_predictor.totals.total_features", side_effect=lambda _, game, detail: {"offense_sum": game["week"]}):
             output = Path(directory) / "totals"
             result = research_totals(DATA, VENUES, 2026, 1, output)
             self.assertTrue((output / "totals-model.json").is_file())
@@ -98,6 +100,7 @@ class SeasonStartRegressionTests(unittest.TestCase):
         expected = sum(2023 <= g["season"] < 2026 and g["home_score"] is not None for g in data["schedule"])
         self.assertEqual(result["training_games"], expected)
         self.assertEqual(result["diagnostic"], {"games": 0, "mae": None, "rmse": None, "mean_error": None})
+        self.assertEqual(result["spread_model"]["validation"]["season"], 2025)
 
     def test_empty_tuning_or_later_week_diagnostics_still_fail(self):
         frame = pd.DataFrame({"season": [2025], "week": [1], "target": [1], "total": [40], "x": [1.]})

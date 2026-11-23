@@ -83,6 +83,18 @@ def fetch_json(url, path):
                    "sha256": hashlib.sha256(content).hexdigest(), "status": "ok"}
 
 
+def scoreboard_quotes(competition):
+    totals, spreads = [], []
+    for item in competition.get("odds") or []:
+        provider = item.get("provider") or {}
+        book = {"book": provider.get("name"), "book_id": str(provider.get("id") or provider.get("name") or "unknown")}
+        totals.append({**book, "line": item.get("overUnder")})
+        home = (item.get("pointSpread") or {}).get("home") or {}
+        line = (home.get("close") or {}).get("line")
+        spreads.append({**book, "line": line if line is not None else item.get("spread")})
+    return totals, spreads
+
+
 def games_from_scoreboard(payload):
     games = []
     for event in payload.get("events", []):
@@ -97,6 +109,7 @@ def games_from_scoreboard(payload):
         state = status.get("state", "unknown")
         if state == "post" and not status.get("completed"):
             state = "unknown"
+        totals, spreads = scoreboard_quotes(competition)
         games.append({"event_id": str(event["id"]), "kickoff": event["date"],
                       "week": int(event.get("week", payload.get("week", {})).get("number", 0)),
                       "home": home["team"]["abbreviation"], "away": away["team"]["abbreviation"],
@@ -109,9 +122,7 @@ def games_from_scoreboard(payload):
                       "clock": competition.get("status", event.get("status", {})).get("displayClock"),
                       "period": competition.get("status", event.get("status", {})).get("period"),
                       "status_detail": status.get("shortDetail") or status.get("detail"),
-                      "total_quotes": [{"line": item.get("overUnder"), "book": item.get("provider", {}).get("name"),
-                                        "book_id": str(item.get("provider", {}).get("id") or item.get("provider", {}).get("name") or "unknown")}
-                                       for item in competition.get("odds", [])],
+                      "total_quotes": totals, "spread_quotes": spreads,
                       "venue": competition.get("venue", {}), "sources": {}})
     ids = [g["event_id"] for g in games]
     if len(ids) != len(set(ids)):

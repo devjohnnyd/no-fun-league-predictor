@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import Mock, patch
 from datetime import datetime, timedelta, timezone
 
-from nfl_predictor.refresh_job import AnalysisRefresh
+from nfl_predictor.refresh_job import AnalysisRefresh, SCORE_MODELS_VERSION
 from nfl_predictor.storage import read_json, sha256, write_new
 
 
@@ -60,7 +60,7 @@ class AnalysisRefreshTests(unittest.TestCase):
             for name in ("dataset.json.gz", "research/research.json", "totals/totals-model.json"):
                 write_new(model / name, {"test": True})
             now = datetime.now(timezone.utc)
-            write_new(model / "models-ready.json", {"season":2026,"week":11,"createdAt":now.isoformat(),"venues_sha256":sha256(venues),
+            write_new(model / "models-ready.json", {"season":2026,"week":11,"createdAt":now.isoformat(),"venues_sha256":sha256(venues),"scoreModelsVersion":SCORE_MODELS_VERSION,
                 "files":{name:sha256(model/name) for name in ("dataset.json.gz", "research/research.json", "totals/totals-model.json")}})
             self.assertEqual(job.cached_models(11, now), model)
             self.assertIsNone(job.cached_models(10, now))

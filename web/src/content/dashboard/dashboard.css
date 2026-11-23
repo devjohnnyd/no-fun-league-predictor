@@ -117,6 +117,32 @@
 .nfl-market-heading>strong:last-child { font-variant-numeric:tabular-nums; text-align:right; }
 .nfl-market-total .nfl-total-won { color:var(--positive); }
 .nfl-market-total .nfl-total-lost { color:var(--negative); }
+.nfl-toss-up-evidence { margin-bottom:18px; }
+.nfl-toss-up {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);
+  align-items:center;
+  gap:22px;
+  padding:20px clamp(16px,4vw,30px);
+  border:1px solid var(--border);
+  border-left:4px solid var(--accent);
+  border-radius:16px;
+  background:linear-gradient(110deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface) 70%);
+}
+.nfl-toss-up h2 { margin:0; font-size:clamp(20px,3vw,27px); line-height:1.15; }
+.nfl-toss-up p { margin:6px 0 0; color:var(--secondary); font-size:13px; }
+.nfl-toss-up-copy .nfl-details-link { margin-top:10px; }
+.nfl-toss-up-teams { display:flex; align-items:center; justify-content:space-between; gap:8px; font-weight:650; }
+.nfl-toss-up-teams span { display:flex; align-items:center; gap:8px; min-width:0; }
+.nfl-toss-up-teams strong { font-size:20px; font-variant-numeric:tabular-nums; }
+.nfl-toss-up-teams small { color:var(--secondary); }
+.nfl-toss-up-teams img { width:clamp(30px,6vw,44px); height:auto; }
+.nfl-toss-up-track { display:flex; min-height:7px; overflow:hidden; border-radius:999px; background:color-mix(in srgb,var(--accent) 38%,var(--surface)); }
+.nfl-toss-up-track span { background:var(--accent); border-right:2px solid var(--surface); }
+@media(max-width:620px) {
+  .nfl-toss-up { grid-template-columns:1fr; gap:12px; }
+  .nfl-toss-up-teams span { gap:6px; }
+}
 .nfl-history-scroll { max-width:100%; overflow:auto; }
 .nfl-history-scroll table { border-collapse:collapse; width:100%; font-size:12px; }
 .nfl-history-scroll th,.nfl-history-scroll td { padding:8px; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }

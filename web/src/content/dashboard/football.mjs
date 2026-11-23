@@ -18,6 +18,25 @@ export function gameSummary(rows) {
     wins: decided.filter(row => row.originalCorrect === true).length,
     losses: decided.filter(row => row.originalCorrect === false).length };
 }
+export function spreadLabel(row, homeLine, side = "Home") {
+  if (homeLine == null) return "Line unavailable";
+  const line = side === "Away" ? -homeLine : homeLine;
+  return `${side === "Away" ? row.awayCode : row.homeCode} ${line === 0 ? "PK" : line > 0 ? `+${line}` : line}`;
+}
+export function weeklyTossUp(rows) {
+  const chronological = orderedGames(rows, "kickoff");
+  const forecasts = chronological.filter(row => Number.isFinite(row.homeProbability) && row.homeProbability >= 0 && row.homeProbability <= 1 && row.pick);
+  if (forecasts.length) {
+    const row = forecasts.reduce((closest, game) =>
+      Math.abs(game.homeProbability - .5) < Math.abs(closest.homeProbability - .5) ? game : closest);
+    return { row, forecastCount: forecasts.length };
+  }
+  const quoted = chronological.filter(row => row.state === "pre" && row.marketSpread?.quoteStatus === "pregame" && Number.isFinite(row.marketSpread.latestLine));
+  if (!quoted.length) return null;
+  const row = quoted.reduce((closest, game) =>
+    Math.abs(game.marketSpread.latestLine) < Math.abs(closest.marketSpread.latestLine) ? game : closest);
+  return { row, forecastCount: 0, quoteCount: quoted.length };
+}
 export function totalRecord(rows, owner = "model") {
   const chosen = rows.filter(row => owner === "user" ? Boolean(row.userPick) : row.analysis && row.analysis.lean !== "Even");
   const correct = owner === "user" ? "userCorrect" : "correct";

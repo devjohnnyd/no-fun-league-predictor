@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from .engine import FeatureEngine
+from .features import BASE_NAMES
 from .freshness import timestamp
 from .model import design
 from .storage import clean, read_json, sha256, write_new
@@ -43,17 +44,18 @@ def total_features(engine, game, context=None, detail=None):
             "clock_exposure": sum(clock) if all(v is not None for v in clock) else None}
 
 
-def fit_total(frame, names, alpha):
+def fit_total(frame, names, alpha, target="total"):
     matrix, medians, mean, scale = design(frame, names)
     penalty = np.eye(matrix.shape[1]) * alpha
     penalty[0, 0] = 1e-8
-    beta = np.linalg.solve(matrix.T @ matrix + penalty, matrix.T @ frame.total.to_numpy(float))
+    beta = np.linalg.solve(matrix.T @ matrix + penalty, matrix.T @ frame[target].to_numpy(float))
     return {"names": names, "medians": medians.tolist(), "mean": mean.tolist(), "scale": scale.tolist(), "beta": beta.tolist(), "alpha": alpha}
 
 
-def predict_total(model, frame):
+def predict_total(model, frame, target="total"):
     matrix, *_ = design(frame, model["names"], model["medians"], model["mean"], model["scale"])
-    return np.maximum(0, matrix @ np.asarray(model["beta"]))
+    prediction = matrix @ np.asarray(model["beta"])
+    return np.maximum(0, prediction) if target == "total" else prediction
 
 
 def total_scores(rows):
@@ -64,15 +66,15 @@ def total_scores(rows):
             "mean_error": float(np.mean(error))}
 
 
-def rolling_totals(frame, year, names, alpha, through_week=18, allow_empty=False):
+def rolling_totals(frame, year, names, alpha, through_week=18, allow_empty=False, target="total"):
     output = []
     for week in sorted(frame.loc[frame.season.eq(year) & frame.week.le(through_week), "week"].unique()):
         train = frame[(frame.season < year) | (frame.season.eq(year) & frame.week.lt(week))]
         test = frame[frame.season.eq(year) & frame.week.eq(week)].copy()
         if train.empty:
             continue
-        test["predicted"] = predict_total(fit_total(train, names, alpha), test)
-        test["mean_baseline"] = train.total.mean()
+        test["predicted"] = predict_total(fit_total(train, names, alpha, target), test, target)
+        test["mean_baseline"] = train[target].mean()
         output.append(test)
     if not output:
         if allow_empty and through_week == 0:
@@ -105,6 +107,44 @@ def line_analysis(projection_row, line):
             "lean": "Over" if over > under else "Under" if under > over else "Even", "experimental": True}
 
 
+def fit_spread(frame, train):
+    """Fit home-minus-away points and calibrate on earlier out-of-week errors."""
+    initial = frame[frame.season.eq(2023)]
+    names = [name for name in BASE_NAMES if initial[name].notna().sum() >= 30 and initial[name].nunique() > 1]
+    calibration = []
+    for alpha in (15., 60., 150.):
+        rows = rolling_totals(frame, 2024, names, alpha, target="margin")
+        errors = rows.margin - rows.predicted
+        calibration.append((float(errors.abs().mean()), alpha, errors))
+    _, alpha, errors = min(calibration, key=lambda item: item[0])
+    validation = rolling_totals(frame, 2025, names, alpha, target="margin")
+    return {"model": fit_total(train, names, alpha, target="margin"), "residuals": errors.tolist(),
+            "validation": {"season": 2025, "games": len(validation),
+                           "mae": float((validation.margin - validation.predicted).abs().mean()),
+                           "mean_baseline_mae": float((validation.margin - validation.mean_baseline).abs().mean())}}
+
+
+def spread_projection(model, features):
+    margin = float(predict_total(model["model"], pd.DataFrame([features]), target="margin")[0])
+    samples = np.rint(margin + np.asarray(model["residuals"], dtype=float)).astype(int)
+    return {"projected_home_margin": margin, "margin_samples": samples.tolist(),
+            "calibration_games": len(samples), "status": "experimental"}
+
+
+def spread_analysis(projection_row, home_line):
+    samples = np.asarray(projection_row["margin_samples"], dtype=float) + home_line
+    if not len(samples) or not np.isfinite(samples).all():
+        raise ValueError("Missing point-spread predictive distribution")
+    whole = float(home_line).is_integer()
+    denominator = len(samples) + (3 if whole else 2)
+    home = (int((samples > 0).sum()) + 1) / denominator
+    away = (int((samples < 0).sum()) + 1) / denominator
+    push = (int((samples == 0).sum()) + 1) / denominator if whole else 0.
+    return {"line": home_line, "home_cover_probability": home, "away_cover_probability": away,
+            "push_probability": push, "lean": "Home" if home > away else "Away" if away > home else "Even",
+            "experimental": True}
+
+
 def research_totals(dataset_path, venues_path, season, week, output):
     output = Path(output)
     if output.exists():
@@ -114,8 +154,10 @@ def research_totals(dataset_path, venues_path, season, week, output):
     for game in sorted(dataset["schedule"], key=lambda g: (g["season"], g["week"], g["game_id"])):
         if game["season"] < 2023 or game.get("home_score") is None or (game["game_id"], game["home_team"]) not in engine.team_by_game:
             continue
+        features, detail = engine.features(game)
         rows.append({"game_id": game["game_id"], "season": game["season"], "week": game["week"],
-                     "total": game["home_score"] + game["away_score"], **total_features(engine, game)})
+                     "total": game["home_score"] + game["away_score"], "margin": game["home_score"] - game["away_score"],
+                     **total_features(engine, game, detail=detail), **{name: features[name] for name in BASE_NAMES}})
     frame = pd.DataFrame(rows)
     tuning, selection, candidates, residuals = [], [], {}, {}
     for family, names in (("efficiency_pace", CORE), ("context", CORE + CONTEXT)):
@@ -143,6 +185,7 @@ def research_totals(dataset_path, venues_path, season, week, output):
     result = {"version": "4.0.0", "created_at": datetime.now(timezone.utc).isoformat(), "status": "experimental",
               "training_cutoff": {"season": season, "before_week": week}, "model": fit_total(train, names, alpha),
               "training_games": len(train), "residuals": residuals[selected["family"]], "selected": selected,
+              "spread_model": fit_spread(frame, train),
               "tuning": tuning, "selection": selection, "diagnostic": total_scores(diagnostic),
               "mean_baseline_diagnostic": total_scores(mean_baseline),
               "source_sha256": {"dataset": sha256(dataset_path), "venues": sha256(venues_path)},
@@ -154,12 +197,12 @@ def research_totals(dataset_path, venues_path, season, week, output):
               "attribution": dataset["attribution"]}
     output.mkdir(parents=True)
     write_new(output / "totals-model.json", result)
-    diagnostic.to_csv(output / "diagnostic-predictions.csv", index=False)
+    diagnostic.drop(columns=["margin", *BASE_NAMES]).to_csv(output / "diagnostic-predictions.csv", index=False)
     return result
 
 
-def total_forecasts(batches, latest=False):
-    """Select original (or latest) total projections independently of winner revisions."""
+def total_forecasts(batches, latest=False, projection_key="total_projection"):
+    """Select original (or latest) projections independently of winner revisions."""
     selected = {}
     for batch in batches:
         issued = batch.get("issued_at")
@@ -167,7 +210,7 @@ def total_forecasts(batches, latest=False):
             continue
         for row in batch["forecast"]:
             event = str(row["espn_id"])
-            if row.get("total_projection") and (event not in selected or (timestamp(issued) > timestamp(selected[event]["issued_at"]) if latest else timestamp(issued) < timestamp(selected[event]["issued_at"]))):
+            if row.get(projection_key) and (event not in selected or (timestamp(issued) > timestamp(selected[event]["issued_at"]) if latest else timestamp(issued) < timestamp(selected[event]["issued_at"]))):
                 selected[event] = {**row, "issued_at": issued}
     return selected
 

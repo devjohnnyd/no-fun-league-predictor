@@ -5,6 +5,7 @@ import tempfile
 import unittest
 
 from nfl_predictor.line_tracking import LineTracker
+from nfl_predictor.sources import scoreboard_quotes
 
 
 class LineTrackingTests(unittest.TestCase):
@@ -19,11 +20,11 @@ class LineTrackingTests(unittest.TestCase):
         self.batch = {"issued_at": "2026-11-16T12:00:00Z", "forecast": [{"espn_id": "1", "home": "BAL", "away": "LAC",
                        "total_projection": {"projected_total": 44., "interval_80": [40, 48], "total_samples": [43, 44, 45]}}]}
 
-    def observe(self, at="2026-11-16T13:00:00Z", batches=None):
+    def observe(self, at="2026-11-16T13:00:00Z", batches=None, market="marketTotal"):
         payload = {"queries": {"matchups": {"rows": [copy.deepcopy(self.row)]}}}
         manifest = {"retrieved_at": at, "games": [self.game], "scoreboard_source": {"url": "https://example.test/scores", "sha256": "abc"}}
         return self.store.enrich(payload, manifest, [self.batch] if batches is None else batches,
-                                 now=datetime.fromisoformat(at.replace("Z", "+00:00")))["queries"]["matchups"]["rows"][0]["marketTotal"]
+                                 now=datetime.fromisoformat(at.replace("Z", "+00:00")))["queries"]["matchups"]["rows"][0][market]
 
     def test_movement_and_new_analysis_do_not_rewrite_original_pick(self):
         first = self.observe()
@@ -106,3 +107,39 @@ class LineTrackingTests(unittest.TestCase):
         final = self.observe("2026-11-17T05:00:00Z")
         self.assertEqual(final["actualOutcome"], "Push")
         self.assertIsNone(final["correct"])
+
+    def test_spread_uses_home_sign_and_settles_at_original_line(self):
+        _, spreads = scoreboard_quotes({"odds": [{"provider": {"id": "A", "name": "Book A"}, "spread": 3,
+                                                   "pointSpread": {"home": {"close": {"line": "-3"}}}}]})
+        self.game["spread_quotes"] = spreads
+        self.batch["forecast"][0]["spread_projection"] = {"projected_home_margin": 5., "margin_samples": [4, 5, 6]}
+        first = self.observe(market="marketSpread")
+        self.assertEqual(first["originalPick"]["lean"], "Home")
+        self.assertGreater(first["originalPick"]["push_probability"], 0)
+        self.game["spread_quotes"][0]["line"] = "-6.5"
+        moved = self.observe("2026-11-16T14:00:00Z", market="marketSpread")
+        self.assertEqual(moved["analysis"]["lean"], "Away")
+        self.assertEqual(moved["analysis"]["push_probability"], 0)
+        self.assertEqual(moved["originalLine"], -3)
+        self.assertEqual(moved["movement"], -3.5)
+        other = LineTracker(Path(self.temp.name) / "spread-copy.db")
+        other.import_rows(self.store.export_rows())
+        self.store = other
+        self.game.update(state="post", completed=True)
+        self.row.update(homeScore=24, awayScore=21)
+        final = self.observe("2026-11-17T05:00:00Z", market="marketSpread")
+        self.assertEqual(final["actualOutcome"], "Push")
+        self.assertIsNone(final["correct"])
+        self.assertEqual(final["historyObservationCount"], 2)
+        self.assertEqual(len(self.store.original_selections(2026)), 1)
+
+    def test_spread_pick_em_and_late_forecast_do_not_create_retroactive_pick(self):
+        self.game["spread_quotes"] = [{"line": "PK", "book": "Book A", "book_id": "A"}]
+        self.batch["issued_at"] = "2026-11-16T13:30:00Z"
+        self.batch["forecast"][0]["spread_projection"] = {"projected_home_margin": -3., "margin_samples": [-2, -3, -4]}
+        first = self.observe(market="marketSpread")
+        self.assertEqual(first["latestLine"], 0)
+        self.assertIsNone(first["originalPick"])
+        fresh = self.observe("2026-11-16T14:00:00Z", market="marketSpread")
+        self.assertEqual(fresh["originalPick"]["lean"], "Away")
+        self.assertEqual(fresh["originalIssuedAt"], "2026-11-16T14:00:00Z")

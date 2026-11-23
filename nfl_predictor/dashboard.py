@@ -61,6 +61,7 @@ def week_payload(manifest, metadata, batches, dataset=None, card=None):
             "eloHomeProbability": prediction.get("elo_home_probability") if prediction else None,
             "marketHomeProbability": prediction.get("market", {}).get("home_probability") if prediction else None,
             "totalProjection": prediction.get("total_projection") if prediction else None,
+            "spreadProjection": prediction.get("spread_projection") if prediction else None,
             "originalPick": first["pick"] if first else None, "originalHomeProbability": first["home_probability"] if first else None,
             "originalCorrect": first_correct, "tied": tied,
             "homeClockKickoff": ht.get("home_clock_kickoff"), "awayClockKickoff": at.get("home_clock_kickoff"),
@@ -95,6 +96,8 @@ def week_payload(manifest, metadata, batches, dataset=None, card=None):
                 "evidenceFlow": [
                     {"title": "Scores", "detail": "Public ESPN NFL scoreboard; season and week are validated. Only completed games count toward results."},
                     {"title": "Market totals", "detail": "Timestamped ESPN-listed provider quotes. First observed means the first quote this tracker captured, not the market opening line. Movement compares the same provider. No line is invented for games without a saved quote. Market picks and fixed brochure lines remain separate."},
+                    {"title": "Point spreads", "detail": "ESPN-listed provider home spreads, observed before kickoff. An experimental score-margin model estimates cover and push probabilities. The first directional pick is settled at its saved line."},
+                    {"title": "Weekly toss-up", "detail": "The saved winner forecast closest to 50%. Before forecasts are available, the smallest current spread is an early market watch."},
                     {"title": "Picks", "detail": "Saved pre-kickoff model snapshots; original picks remain separate from later revisions. Refreshing scores never regenerates predictions."},
                     {"title": "Branding", "detail": "Official team logos retrieved from NFL.com. Team names/colors and venues are checked against ESPN team metadata."},
                     {"title": "Travel", "detail": "Home-clock kickoff uses IANA time zones on the game date and city-level venue coordinates. It is a proxy, not observed acclimation."}],

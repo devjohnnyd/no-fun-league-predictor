@@ -1,5 +1,13 @@
 # Weekly over/under tracking
 
+## Point spreads and the weekly toss-up
+
+Every matchup shows its point spread when the provider has a quote. The spread model projects home score minus away score from historical team, quarterback and game features. Its training excludes the target week. Rolling 2024 errors calibrate the projected margin distribution and 2025 margin error is reported beside a historical mean baseline. These comparisons measure score-margin error. Cover probabilities are experimental.
+
+The first directional spread pick keeps its original line even if the quote or projection changes. A push occurs when the selected team's final score plus its spread equals the opponent's score. The weekly record counts wins, losses, pushes and pending picks. Game details show when each line and pick were observed.
+
+The toss-up highlights the saved winner projection closest to 50/50 and shows both teams' win probabilities. Before any winner picks are ready, it highlights the tightest available pregame spread as an early watch.
+
 Every NFL game has its own market-total selection, including Thursday and other non-Sunday games. The optional three-game printed card remains a separate fixed-line contest view. No brochure is required for the full slate.
 
 The week selector loads any regular-season week from the reviewed season schedule. Each game shows its available provider total, first observed total, same-provider movement, scoring projection, latest line analysis, original tracked market pick and eventual result. Details include timestamped quote history and the projection's issue time. Missing quotes and forecasts stay unavailable; completed games never receive retrospective picks.

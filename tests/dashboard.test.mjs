@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { filterGames, gameSummary, inputFreshness, orderedGames, sourceAgeLabel, totalRecord, validateMatchupRefresh } from "../web/src/content/dashboard/football.mjs";
+import { filterGames, gameSummary, inputFreshness, orderedGames, sourceAgeLabel, spreadLabel, totalRecord, validateMatchupRefresh, weeklyTossUp } from "../web/src/content/dashboard/football.mjs";
 
 test("pregame freshness distinguishes missing, stale and unofficial evidence", () => {
   const now = Date.parse("2026-11-19T22:00:00Z");
@@ -17,6 +17,21 @@ const rows = [
   { eventId: "2", state: "pre", kickoff: "2026-11-17T01:15Z", homeName: "Ravens", awayName: "Chargers", homeCode: "BAL", awayCode: "LAC", slateEligible: true, originalCorrect: null, pickProbability: .64 },
   { eventId: "3", state: "post", kickoff: "2026-11-13T01:15Z", homeName: "Giants", awayName: "Commanders", homeCode: "NYG", awayCode: "WSH", slateEligible: false, originalCorrect: null, pickProbability: null },
 ];
+
+test("toss-up prefers the closest saved winner forecast and falls back to current spreads", () => {
+  const watched = [
+    {...rows[0], state: "pre", marketSpread: {quoteStatus: "pregame", latestLine: -1.5}},
+    {...rows[1], marketSpread: {quoteStatus: "pregame", latestLine: -3}},
+    {...rows[2], marketSpread: {quoteStatus: "last observed pregame", latestLine: 0}},
+  ];
+  assert.equal(weeklyTossUp(watched).row.eventId, "1");
+  watched[0] = {...watched[0], homeProbability: .57, pick: "NYJ"};
+  watched[1] = {...watched[1], homeProbability: .47, pick: "LAC"};
+  assert.equal(weeklyTossUp(watched).row.eventId, "2");
+  assert.equal(weeklyTossUp(watched).forecastCount, 2);
+  assert.equal(spreadLabel(watched[1], -3, "Away"), "LAC +3");
+  assert.equal(spreadLabel(watched[1], 0), "BAL PK");
+});
 
 test("total records separate user picks, model abstentions, pushes and pending games", () => {
   const totals = [
