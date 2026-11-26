@@ -211,3 +211,32 @@
 .nfl-detail-section dd small { display:block; font-size:11px; margin-top:3px; }
 .nfl-input-stale { color:var(--text-secondary); }
 .nfl-history-note { font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+/* Starting QBs on each pick and locked bets. */
+.nfl-qb-line { display:grid; gap:3px; margin-top:12px; font-size:12px; line-height:1.4; }
+.nfl-qb-line>span { color:var(--secondary); font-size:11px; }
+.nfl-qb-line strong { font-weight:600; overflow-wrap:anywhere; }
+.nfl-qb-alert,.nfl-lock-changes.is-major { color:#b57e25; font-weight:600; }
+.nfl-lock-status { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; border-top:1px solid var(--border); margin-top:16px; padding-top:12px; font-size:12px; }
+.nfl-lock-badge { font-weight:650; }
+.nfl-lock-badge::before { content:""; display:inline-block; width:8px; height:8px; margin-right:6px; border-radius:2px; background:var(--accent); vertical-align:1px; }
+.nfl-lock-changes { color:var(--secondary); }
+.nfl-lock-button { min-height:36px; font-size:13px; }
+.nfl-locked-bet h4 { margin:18px 0 6px; font-size:13px; }
+.nfl-lock-table th[scope=row] { font-weight:600; }
+.nfl-lock-table td { white-space:normal !important; min-width:120px; }
+.nfl-lock-table tr.is-changed td:last-child { color:#b57e25; font-weight:600; }
+.nfl-lock-change-list { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
+.nfl-lock-change-list li.is-major { color:#b57e25; }
+.nfl-lock-result { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.nfl-lock-result span { border:1px solid var(--border-strong); border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600; }
+.nfl-lock-result .is-won { color:var(--positive); }
+.nfl-lock-result .is-lost { color:var(--negative); }
+.nfl-lock-hindsight { font-size:13px; }
+.nfl-lock-form dl { display:grid; gap:8px; margin:12px 0; font-size:13px; }
+.nfl-lock-form dl div { display:flex; justify-content:space-between; gap:12px; }
+.nfl-lock-form dt { color:var(--secondary); }
+.nfl-lock-form dd { margin:0; text-align:right; font-weight:600; }
+.nfl-lock-password { display:grid; gap:6px; font-size:13px; }
+.nfl-lock-password input { font:inherit; min-height:44px; padding:8px 10px; color:var(--text); background:var(--control); border:1px solid var(--border-strong); border-radius:10px; }
+.nfl-lock-error { color:var(--negative); font-size:13px; }
+@media (max-width:620px) { .nfl-lock-button { min-height:44px; } }

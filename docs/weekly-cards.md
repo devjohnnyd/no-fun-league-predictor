@@ -16,6 +16,16 @@ The week selector loads any regular-season week from the reviewed season schedul
 
 **Refresh data & analysis** fetches scores/lines immediately, then starts one background job: download current-season public statistics, rebuild with the historical source bundle, refresh QBs/injuries/staff/weather, fit chronological winner and total models, and save new pregame revisions. Progress and blocking reasons appear in the UI. One-minute score/line polling does not automatically retrain. Full refresh requires `serve --history-bundle data/raw/v4-2026-11-15` (or your actual historical source bundle; repeat the flag for additional bundles). Raw downloads, quote history and immutable refresh runs remain local and ignored by Git. Incomplete preceding-week statistics, missing required evidence, stale inputs and passed kickoffs block new picks while preserving existing selections and updated quotes.
 
+## Starting QBs and locked bets
+
+Every game card names the starting QBs the saved pick was built on. When a later input check projects a different starter (a release, benching or injury), the card flags the change even if the model could not release a new forecast, for example because the new QB has no statistics identity yet.
+
+**Lock in bet** records the bet at that moment. The server freezes its own current view of the game: winner pick and probability, forecast issue time, both starting QBs and their status, designated injuries, kickoff weather, and the latest spread and total with any model lean. Locks are allowed only before kickoff, once per game, and are never rewritten. They live in `locks.sqlite3` beside `lines.sqlite3` in the tracker state directory; back it up with the line ledger.
+
+Afterward the card shows how many things changed since the lock, and Details compares **At lock** with **Now** (or the last pregame view once the game starts). Major changes are ones that could flip a bet: a different starting QB, a flipped pick or lean, or a player newly ruled out. Line moves, probability shifts of 3+ points, wind or temperature swings and other status changes are listed as minor. Final games grade the bet exactly as locked (winner, spread and total at the locked lines) and note whether the latest pregame pick would have done better.
+
+Locking requires a password from the `NFL_LOCK_PASSWORD` environment variable on the server (locally before `serve`, or an Azure app setting for the hosted site). Without it, locking is off. The password is never stored in Git; the browser remembers it locally after the first successful lock.
+
 ## Your Week 10 choices
 
 On November 16 you reported choosing **Over on all three** printed games. They are recorded with the actual report timestamp; the original placement time is unknown. Your record is **1–2**: MIN/GB and SEA/LV lost; PIT/CIN won. The model has **zero** picks for that printed card. Your choices carry no invented probabilities.

@@ -158,6 +158,7 @@ def prepare(dataset_path, venues_path, staff_seed_path, season, week, output, re
             continue
         game["home"], game["away"] = normalize_team(game["home"]), normalize_team(game["away"])
         event = game["event_id"]
+        context = None
         try:
             scheduled = schedule_by_espn.get(event)
             if not scheduled or (scheduled["home_team"], scheduled["away_team"]) != (game["home"], game["away"]):
@@ -220,7 +221,8 @@ def prepare(dataset_path, venues_path, staff_seed_path, season, week, output, re
                              "context": context, "features": features, "detail": detail, "preflight": check_pregame(game, now),
                              "feature_built_at": now.isoformat(), "dataset_sha256": sha256(dataset_path)})
         except Exception as exc:
-            prepared.append({"event_id": event, "game": game, "preflight": {"ready": False, "reasons": [str(exc)]}})
+            # A blocked game still reports who is projected at QB (for example, a newly signed starter without statistics).
+            prepared.append({"event_id": event, "game": game, "context": context, "preflight": {"ready": False, "reasons": [str(exc)]}})
     result = {"version": "4.0.0", "prepared_at": now.isoformat(), "season": season, "week": week,
               "dataset_sha256": sha256(dataset_path), "venues_sha256": sha256(venues_path),
               "review_sha256": sha256(review_path) if review_path else None, "games": prepared,

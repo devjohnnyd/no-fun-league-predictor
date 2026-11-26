@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 
 from .dashboard import week_payload
 from .features import normalize_team
+from .locks import LockError, PickLocks, check_password
 from .sources import ESPN, games_from_scoreboard
 from .freshness import timestamp
 from .storage import read_json, sha256
@@ -65,13 +66,14 @@ def fetch_week(season, week):
 
 
 class WeekFeed:
-    def __init__(self, season, week, metadata, batches, dataset=None, ttl=30, card=None, line_tracker=None):
+    def __init__(self, season, week, metadata, batches, dataset=None, ttl=30, card=None, line_tracker=None, locks=None, inputs=None):
         if not 2022 <= season <= datetime.now(timezone.utc).year + 1 or not 1 <= week <= 18:
             raise ValueError("Invalid NFL season/week")
         self.season, self.week = season, week
         self.metadata, self.batches, self.dataset = metadata, batches, dataset
         self.card = card
         self.line_tracker = line_tracker
+        self.locks, self.inputs = locks, inputs
         self.strict_slate = dataset is not None
         if dataset is not None:
             self.expected_games = {str(g["espn"]): (g["home_team"], g["away_team"])
@@ -106,7 +108,9 @@ class WeekFeed:
                 # The browser independently checks its full reviewed slate.
                 self.expected_games = actual
                 self.cached, self.updated = result, time.monotonic()
-            return self.cached
+            cached = self.cached
+        # Locks are read per request so a new lock appears without refetching scores.
+        return self.locks.enrich(cached, self.inputs() if self.inputs else None) if self.locks else cached
 
 
 class SeasonFeeds:
@@ -122,6 +126,7 @@ class SeasonFeeds:
         self.card_path = card_path
         self.state_dir = Path(state_dir)
         self.line_tracker = LineTracker(self.state_dir / "lines.sqlite3")
+        self.locks = PickLocks(self.state_dir / "locks.sqlite3")
         # Reload immutable revisions from earlier local refresh sessions.
         latest_dataset = None
         for path in sorted((self.state_dir / "refreshes").glob("*/release/forecast.json")):
@@ -159,13 +164,30 @@ class SeasonFeeds:
                 card_directory = self.card_path.parent if self.card_path else Path("data/cards")
                 card_path = self.card_path if week == self.week and self.card_path else card_directory / f"{self.season}-week{week}.json"
                 card = read_json(card_path) if card_path.is_file() else None
-                result = WeekFeed(self.season, week, self.metadata, self.batches, self.dataset, card=card, line_tracker=self.line_tracker)
+                result = WeekFeed(self.season, week, self.metadata, self.batches, self.dataset, card=card, line_tracker=self.line_tracker,
+                                  locks=self.locks, inputs=lambda week=week: self.latest_inputs(week))
                 result.card_path = card_path if card else None
                 self.feeds[week] = result
             return self.feeds[week]
 
     def current_week(self, now=None):
         return current_week(self.dataset, self.season, now)
+
+    def latest_inputs(self, week):
+        """Projected QBs from the last completed input check of this week, keyed by event."""
+        status = self.refresh.status
+        if status.get("week") != week or not status.get("completedAt"):
+            return {}
+        return {item["eventId"]: {"checkedAt": status["completedAt"], "qbs": item.get("qbs")}
+                for item in status.get("inputs", []) if item.get("qbs")}
+
+    def lock_pick(self, week, event_id, password):
+        """Freeze the server's own current view of a game; the browser supplies only which game."""
+        check_password(password)
+        row = next((r for r in self.feed(week).get()["queries"]["matchups"]["rows"] if r["eventId"] == str(event_id)), None)
+        if row is None:
+            raise LockError("That game is not on this week's slate.", 404)
+        return self.locks.lock(row, self.latest_inputs(week))
 
     def refresh_if_stale(self, week, now=None):
         """Start a light input check for the current week once the last one is stale; never a full model refit."""
@@ -253,7 +275,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_POST(self):
-        if self.path != "/api/refresh":
+        if self.path not in ("/api/refresh", "/api/lock"):
             self.send_error(404)
             return
         # Refresh can make many external reads; reject cross-site triggers.
@@ -263,11 +285,20 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            if not 0 < length <= 128:
+            if not 0 < length <= (512 if self.path == "/api/lock" else 128):
                 raise ValueError()
             body = json.loads(self.rfile.read(length))
             week = int(body["week"])
             self.feed.feed(week)
+            if self.path == "/api/lock":
+                try:
+                    self.send_json(self.feed.lock_pick(week, str(body["eventId"]), body.get("password")), 201)
+                except LockError as error:
+                    self.send_json({"error": str(error)}, error.status)
+                except Exception:
+                    log.exception("Lock failed")
+                    self.send_json({"error": "The current game data is unavailable; nothing was locked. Try again shortly."}, 503)
+                return
         except (ValueError, KeyError, TypeError, OverflowError, json.JSONDecodeError):
             self.send_error(400)
             return

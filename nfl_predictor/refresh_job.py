@@ -13,6 +13,15 @@ SCHEDULED_DAILY_RUNS = 6
 SCORE_MODELS_VERSION = 2
 
 
+def projected_qbs(prepared_game):
+    """Each side's projected starter from this input check; None when depth charts were never read."""
+    teams = (prepared_game.get("context") or {}).get("teams", {})
+    game = prepared_game["game"]
+    if not all(game.get(side) in teams for side in ("home", "away")):
+        return None
+    return {side: {"name": teams[game[side]].get("qb_name"), "status": teams[game[side]].get("qb_status")} for side in ("home", "away")}
+
+
 class AnalysisRefresh:
     def __init__(self, manager, history_bundles, output):
         self.manager, self.history_bundles, self.output = manager, history_bundles, Path(output)
@@ -135,7 +144,8 @@ class AnalysisRefresh:
                 options["review_path"] = review
             prepared = prepare(dataset_path, self.manager.metadata_path, self.manager.staff_seed, self.manager.season, week, root / "prepared", **options)
             self.status["inputs"] = [{"eventId": str(g["event_id"]), "sources": g["game"].get("sources", {}),
-                                     "check": check_pregame(g["game"], final=final)} for g in prepared["games"] if "game" in g]
+                                     "check": check_pregame(g["game"], final=final), "qbs": projected_qbs(g)}
+                                    for g in prepared["games"] if "game" in g]
             if not any("features" in game for game in prepared["games"]):
                 reasons = sorted({reason for game in prepared["games"] for reason in game["preflight"]["reasons"]})
                 raise ValueError("No releasable pregame inputs: " + "; ".join(reasons or ["No unstarted games"]))

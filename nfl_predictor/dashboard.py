@@ -7,6 +7,14 @@ from .freshness import timestamp
 from .storage import clean
 
 
+def injury_reports(prediction, side):
+    """Designated players the forecast saw, so a locked bet can show what was known then."""
+    if not prediction:
+        return []
+    reports = prediction.get("detail", {}).get(side + "_injuries", {}).get("reports", [])
+    return [{"name": r["name"], "position": r.get("position"), "status": r["status"]} for r in reports if r.get("name") and r.get("status")]
+
+
 def week_payload(manifest, metadata, batches, dataset=None, card=None):
     """Only saved pregame picks are displayed; score refresh never makes new picks."""
     now = datetime.now(timezone.utc)
@@ -69,6 +77,10 @@ def week_payload(manifest, metadata, batches, dataset=None, card=None):
             "homeTravelKm": ht.get("km"), "awayTravelKm": at.get("km"),
             "homeQb": prediction.get("home_qb", {}).get("name") if prediction else None,
             "awayQb": prediction.get("away_qb", {}).get("name") if prediction else None,
+            "homeQbStatus": prediction.get("home_qb_status") if prediction else None,
+            "awayQbStatus": prediction.get("away_qb_status") if prediction else None,
+            "homeInjuries": injury_reports(prediction, "home"), "awayInjuries": injury_reports(prediction, "away"),
+            "weather": prediction.get("detail", {}).get("weather") if prediction else None,
             "updatedAt": source_time,
         })
     rows.sort(key=lambda r: (r["kickoff"], r["eventId"]))
