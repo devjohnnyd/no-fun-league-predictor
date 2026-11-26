@@ -93,7 +93,7 @@ function QbLine({ row }) {
   </div>;
 }
 
-function LockStatus({ row, onLock }) {
+function LockStatus({ row }) {
   if (row.lock) {
     const major = row.lock.changes.filter(item => item.severity === "major").length;
     const count = row.lock.changes.length;
@@ -102,8 +102,7 @@ function LockStatus({ row, onLock }) {
       <span className={`nfl-lock-changes ${major ? "is-major" : ""}`}>{count ? `${count} ${count === 1 ? "change" : "changes"} since lock${major ? ` · ${major} major` : ""}` : "No changes since lock"}</span>
     </div>;
   }
-  if (row.state !== "pre" || !row.pick) return null;
-  return <div className="nfl-lock-status"><Button className="nfl-lock-button" onClick={() => onLock(row)}>Lock in bet</Button></div>;
+  return null;
 }
 
 function marketLabel(row, market, kind) {
@@ -132,12 +131,9 @@ function currentMarket(market, probabilities) {
   return { line: market.latestLine, lean: analysis?.lean, probability: analysis ? Math.max(...probabilities.map(key => analysis[key])) : null };
 }
 
-function LockedBet({ row, onLock }) {
+function LockedBet({ row }) {
   const lock = row.lock;
-  if (!lock) {
-    if (row.state !== "pre" || !row.pick) return null;
-    return <section className="nfl-detail-section"><h3>Lock in this bet</h3><p>Locking freezes the pick, both starting QBs, injuries, weather and the current spread and total. You can then see what changed before kickoff and grade the bet exactly as placed.</p><Button className="nfl-lock-button" onClick={() => onLock(row)}>Lock in bet</Button></section>;
-  }
+  if (!lock) return null;
   const then = lock.snapshot;
   const probability = team => Math.round((team === row.homeCode ? row.homeProbability : 1 - row.homeProbability) * 100);
   const lines = [
@@ -172,40 +168,48 @@ function LockedBet({ row, onLock }) {
   </section>;
 }
 
-function LockDialog({ row, week, onClose }) {
+function LockDialog({ rows, week, onClose }) {
   const [password, setPassword] = useState(readStoredPassword);
-  const [state, setState] = useState({ busy: false, error: "" });
-  if (!row) return null;
+  const [chosen, setChosen] = useState(() => new Set(rows.map(row => row.eventId)));
+  const [state, setState] = useState({ busy: false, error: "", locked: 0 });
+  const toggle = eventId => setChosen(previous => { const next = new Set(previous); next.has(eventId) ? next.delete(eventId) : next.add(eventId); return next; });
   const submit = async event => {
     event.preventDefault();
-    setState({ busy: true, error: "" });
+    setState({ busy: true, error: "", locked: 0 });
+    let locked = 0;
     try {
-      const response = await fetch(new URL("./api/lock", window.location.href).href, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ week, eventId: row.eventId, password }) });
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        if (response.status === 403) storePassword("");
-        throw new Error(body.error || "Unable to lock this bet. Nothing was saved.");
+      for (const row of rows.filter(item => chosen.has(item.eventId))) {
+        const response = await fetch(new URL("./api/lock", window.location.href).href, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ week, eventId: row.eventId, password }) });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          if (response.status === 403) storePassword("");
+          throw new Error(`${row.awayCode} at ${row.homeCode}: ${body.error || "Unable to lock this bet."}`);
+        }
+        storePassword(password);
+        locked += 1;
+        setState(previous => ({ ...previous, locked }));
       }
-      storePassword(password);
       window.dispatchEvent(new Event("nfl:refresh-scores"));
       onClose();
-    } catch (error) { setState({ busy: false, error: error.message }); }
+    } catch (error) {
+      if (locked) window.dispatchEvent(new Event("nfl:refresh-scores"));
+      setState({ busy: false, error: locked ? `${error.message} ${locked} earlier ${locked === 1 ? "bet was" : "bets were"} locked.` : error.message, locked });
+    }
   };
+  const count = rows.filter(row => chosen.has(row.eventId)).length;
   return <form className="nfl-lock-form" onSubmit={submit}>
-    <p>This records the bet as placed now. It cannot be edited or undone afterward.</p>
-    <dl>
-      <div><dt>Winner pick</dt><dd>{row.pick} · {Math.round(row.pickProbability * 100)}%</dd></div>
-      <div><dt>Starting QBs</dt><dd>{row.awayCode} {row.currentQbs?.away?.name || "Unknown"} · {row.homeCode} {row.currentQbs?.home?.name || "Unknown"}</dd></div>
-      <div><dt>Spread</dt><dd>{row.marketSpread?.latestLine != null ? spreadLabel(row, row.marketSpread.latestLine) : "Unavailable"}</dd></div>
-      <div><dt>Total</dt><dd>{row.marketTotal?.latestLine ?? "Unavailable"}</dd></div>
-    </dl>
+    <p>Each locked game records the pick, both starting QBs, injuries, weather and the current spread and total as they are now. Locks cannot be edited or undone.</p>
+    <ul className="nfl-lock-picks">{rows.map(row => <li key={row.eventId}><label>
+      <input type="checkbox" checked={chosen.has(row.eventId)} onChange={() => toggle(row.eventId)} disabled={state.busy} />
+      <span><strong>{row.awayCode} at {row.homeCode}</strong> · {row.pick} {Math.round(row.pickProbability * 100)}%<small>{row.currentQbs?.away?.name || "Unknown"} vs {row.currentQbs?.home?.name || "Unknown"} · {kickoffLabel(row.kickoff)}</small></span>
+    </label></li>)}</ul>
     <label className="nfl-lock-password"><span>Lock password</span><input type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} required /></label>
     {state.error && <p className="nfl-lock-error" role="alert">{state.error}</p>}
-    <div className="nfl-detail-actions"><Button onClick={onClose}>Cancel</Button><Button type="submit" className="nfl-lock-button" disabled={state.busy || !password}>{state.busy ? "Locking…" : "Lock in bet"}</Button></div>
+    <div className="nfl-detail-actions"><Button onClick={onClose}>Cancel</Button><Button type="submit" className="nfl-lock-button" disabled={state.busy || !password || !count}>{state.busy ? `Locking ${state.locked + 1} of ${count}…` : `Lock in ${count} ${count === 1 ? "bet" : "bets"}`}</Button></div>
   </form>;
 }
 
-function GameCard({ row, onDetails, onLock }) {
+function GameCard({ row, onDetails }) {
   const label = row.state === "in" ? "Live" : row.state === "post" ? "Final" : row.state === "pre" ? "Upcoming" : row.statusDetail || "Status unavailable";
   const confidence = row.pickProbability == null ? null : Math.round(row.pickProbability * 100);
   const color = row.pick === row.homeCode ? row.homeColor : row.awayColor;
@@ -221,7 +225,7 @@ function GameCard({ row, onDetails, onLock }) {
     <QbLine row={row} />
     <MarketTotal total={row.marketTotal} state={row.state} />
     <MarketSpread row={row} />
-    <LockStatus row={row} onLock={onLock} />
+    <LockStatus row={row} />
     <div className="nfl-card-bottom"><span className={`nfl-result ${row.originalCorrect === true ? "is-correct" : row.originalCorrect === false ? "is-miss" : ""}`}>{row.originalCorrect === true ? `✓ Original winner pick${originalNote} won` : row.originalCorrect === false ? `× Original winner pick${originalNote} missed` : row.tied ? "Tie · excluded from record" : row.pick ? "Awaiting winner result" : "No saved winner pick"}</span><button type="button" className="nfl-details-link" onClick={() => onDetails(row)} aria-label={`Details for ${row.awayName} at ${row.homeName}`}>Details <span aria-hidden="true">↗</span></button></div>
   </article>;
 }
@@ -275,13 +279,13 @@ function SpreadHistory({ row }) {
   </section>;
 }
 
-function Detail({ row, onClose, latest, now, onLock }) {
+function Detail({ row, onClose, latest, now }) {
   if (!row) return null;
   const clockText = value => value ? value.slice(11, 16).replace(/^(\d{2}):(\d{2})$/, (_, h, m) => `${Number(h) % 12 || 12}:${m} ${Number(h) >= 12 ? "PM" : "AM"}`) : "Unavailable";
   return <div className="nfl-detail-body">
     <div className="nfl-detail-matchup"><img src={row.awayLogo} width="64" height="64" alt={`${row.awayName} logo`} /><span>at</span><img src={row.homeLogo} width="64" height="64" alt={`${row.homeName} logo`} /></div>
     <p className="nfl-detail-kickoff">{kickoffLabel(row.kickoff)} · {row.venue || "Venue unavailable"}</p>
-    <LockedBet row={row} onLock={onLock} />
+    <LockedBet row={row} />
     {row.pick && <section className="nfl-detail-section"><h3>Saved prediction</h3><div className="nfl-detail-pick"><strong>{row.pick} · {Math.round(row.pickProbability * 100)}%</strong><span>{predictionLabel(row)}</span></div><p>{row.forecastIssuedAt?.length === 10 ? `Issued ${row.forecastIssuedAt}` : `Issued ${new Date(row.forecastIssuedAt).toLocaleString("en-US", { timeZone: "America/New_York" })} ET`}</p><p>Estimated win probability, conditional on a decisive result.</p>{row.originalHomeProbability !== row.homeProbability && <p>Original pick: {row.originalPick} at {Math.round(Math.max(row.originalHomeProbability, 1 - row.originalHomeProbability) * 100)}%.</p>}</section>}
     <section className="nfl-detail-section"><h3>Quarterbacks in the saved forecast</h3><dl><div><dt>{row.awayCode}</dt><dd>{row.awayQb || "No saved projection"}{row.awayQbStatus && ` · ${row.awayQbStatus}`}</dd></div><div><dt>{row.homeCode}</dt><dd>{row.homeQb || "No saved projection"}{row.homeQbStatus && ` · ${row.homeQbStatus}`}</dd></div></dl>{row.currentQbs?.source === "Latest input check" && <p>Latest input check ({etTime(row.currentQbs.checkedAt)}): {row.awayCode} {row.currentQbs.away?.name || "Unknown"} · {row.homeCode} {row.currentQbs.home?.name || "Unknown"}</p>}</section>
     <InputStatus row={row} latest={latest} now={now} />
@@ -333,7 +337,7 @@ function MatchupsContent() {
   const [sort, setSort] = useState("live");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
-  const [locking, setLocking] = useState(null);
+  const [locking, setLocking] = useState(false);
   const [tick, setTick] = useState(Date.now());
   const { job, refresh: refreshAnalysis, busy } = useAnalysisRefresh(snapshot.period?.week);
   useEffect(() => { const timer = setInterval(() => setTick(Date.now()), 15000); return () => clearInterval(timer); }, []);
@@ -350,6 +354,7 @@ function MatchupsContent() {
   const marketRecord = { wins: marketPicks.filter(row => row.correct === true).length, losses: marketPicks.filter(row => row.correct === false).length, picks: marketPicks.filter(row => row.originalPick).length };
   const spreadRecord = totalRecord(all.map(row => ({ ...row.marketSpread, analysis: row.marketSpread?.originalPick })));
   const spotlight = weeklyTossUp(all);
+  const lockable = orderedGames(all.filter(row => row.state === "pre" && row.pick && !row.lock && Date.parse(row.kickoff) > tick), "kickoff");
   return <div className="nfl-dashboard">
     <NflViews active="games" />
     <div className="nfl-week-toolbar"><div className="nfl-week-label"><span className="nfl-season">{snapshot.period?.season} NFL season</span><label className="nfl-week-select"><span className="nfl-visually-hidden">NFL week</span><select aria-label="NFL week" value={snapshot.period?.week} onChange={event => {const url = new URL(window.location.href); url.searchParams.set("week", event.target.value); window.location.assign(url);}}>{Object.keys(snapshot.seasonSchedule || {[snapshot.period?.week]:[]}).map(week => <option key={week} value={week}>Week {week}</option>)}</select></label></div><div className="nfl-feed-controls"><span className={`nfl-feed-label ${stale ? "is-stale" : ""}`} role="status"><span className="nfl-feed-dot" />{stale ? "Last update" : snapshot.nflFeed?.status === "connected" ? "Scores & lines" : "Snapshot"} {age.text}</span><Button className="nfl-refresh-button" disabled={busy} onClick={refreshAnalysis} aria-label="Refresh data and analysis"><Icon name="refresh" />{busy ? "Refreshing…" : "Refresh data & analysis"}</Button></div></div>
@@ -366,11 +371,12 @@ function MatchupsContent() {
     <SortableRegion id="nfl:matchups" variant="freeform" authoredRevision={1} className="nfl-matchup-region">
       <SortableItem id="weekly-games" label="Weekly matchups" kind="custom"><DataComponent id="weekly-games" queryId="matchups" title="Matchups" kind="custom" variant="plain" sourceRows={filtered} displayRows={filtered} description="Saved pregame predictions with current scores. Later revisions never change the original picks record." className="nfl-grid-evidence" headerControls={<div className="nfl-filter-controls"><SegmentedControl className="nfl-status-control" size="default" fullWidth ariaLabel="Game status" value={status} onChange={setStatus} options={[{ value: "all", ariaLabel: "All games", label: <><span className="nfl-filter-full">All games</span><span className="nfl-filter-short">All</span></> }, { value: "in", label: "Live" }, { value: "pre", ariaLabel: "Upcoming", label: <><span className="nfl-filter-full">Upcoming</span><span className="nfl-filter-short">Next</span></> }, { value: "post", label: "Final" }]} /></div>}>
         <div className="nfl-secondary-controls"><label className="nfl-search"><span className="nfl-visually-hidden">Search teams</span><input type="search" placeholder="Find a team or matchup…" value={search} onChange={event => setSearch(event.target.value)} /></label><div className="nfl-select-controls"><Dropdown label="Slate" showLabel triggerClassName="filter-trigger nfl-select-trigger" value={slate} onChange={setSlate} choices={["all", "sunmon"]} choiceLabels={{ all: "Full week", sunmon: "Sunday + Monday" }} /><Dropdown label="Sort" showLabel triggerClassName="filter-trigger nfl-select-trigger" value={sort} onChange={setSort} choices={["live", "kickoff", "confidence"]} choiceLabels={{ live: "Live first", kickoff: "Kickoff time", confidence: "Pick confidence" }} /></div></div>
-        {filtered.length ? <div className="nfl-game-grid">{filtered.map(row => <GameCard key={row.eventId} row={row} onDetails={setSelected} onLock={setLocking} />)}</div> : <div className="nfl-empty"><strong>No games match this view.</strong><p>Try another status, slate or team name.</p><Button onClick={() => { setStatus("all"); setSlate("all"); setSearch(""); }}>Show all games</Button></div>}
+        {filtered.length ? <div className="nfl-game-grid">{filtered.map(row => <GameCard key={row.eventId} row={row} onDetails={setSelected} />)}</div> : <div className="nfl-empty"><strong>No games match this view.</strong><p>Try another status, slate or team name.</p><Button onClick={() => { setStatus("all"); setSlate("all"); setSearch(""); }}>Show all games</Button></div>}
       </DataComponent></SortableItem>
     </SortableRegion>
+    {lockable.length > 0 && <div className="nfl-lock-all"><span>{lockable.length} upcoming {lockable.length === 1 ? "game" : "games"} not yet locked</span><Button className="nfl-lock-button" onClick={() => setLocking(true)}>Lock in bets</Button></div>}
     <footer className="nfl-footer"><span>Team logos: NFL.com · Scores: ESPN</span><span>Preliminary picks require a final lineup check.</span></footer>
-    <Dialog className="nfl-game-dialog" open={Boolean(selectedRow)} onClose={() => setSelected(null)} title={selectedRow ? `${selectedRow.awayName} at ${selectedRow.homeName}` : "Game details"}><Detail row={selectedRow} latest={selectedRow?.state === "pre" && job.week === snapshot.period?.week ? job.inputs?.find(input => input.eventId === selectedRow?.eventId) : null} now={tick} onClose={() => setSelected(null)} onLock={row => { setSelected(null); setLocking(row); }} /></Dialog>
-    <Dialog className="nfl-game-dialog" open={Boolean(locking)} onClose={() => setLocking(null)} title={locking ? `Lock in ${locking.awayCode} at ${locking.homeCode}` : "Lock in bet"}><LockDialog key={locking?.eventId} row={locking} week={snapshot.period?.week} onClose={() => setLocking(null)} /></Dialog>
+    <Dialog className="nfl-game-dialog" open={Boolean(selectedRow)} onClose={() => setSelected(null)} title={selectedRow ? `${selectedRow.awayName} at ${selectedRow.homeName}` : "Game details"}><Detail row={selectedRow} latest={selectedRow?.state === "pre" && job.week === snapshot.period?.week ? job.inputs?.find(input => input.eventId === selectedRow?.eventId) : null} now={tick} onClose={() => setSelected(null)} /></Dialog>
+    <Dialog className="nfl-game-dialog" open={locking} onClose={() => setLocking(false)} title="Lock in bets">{locking && <LockDialog rows={lockable} week={snapshot.period?.week} onClose={() => setLocking(false)} />}</Dialog>
   </div>;
 }
